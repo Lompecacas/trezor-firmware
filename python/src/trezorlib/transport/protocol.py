@@ -141,8 +141,12 @@ class ProtocolV1(Protocol):
         buffer.extend(first_chunk)
 
         # Read the rest of the message
-        while len(buffer) < datalen:
-            buffer.extend(self.read_next())
+        try:
+            while len(buffer) < datalen:
+                buffer.extend(self.read_next())
+        except RuntimeError as e:
+            LOG.error("Failed to read message, bytes read: (%s) %s %s", len(buffer), repr(buffer), buffer.hex())
+            raise RuntimeError("failed to read next chunk") from e
 
         return msg_type, buffer[:datalen]
 
@@ -159,7 +163,7 @@ class ProtocolV1(Protocol):
         return msg_type, datalen, data
 
     def read_next(self) -> bytes:
-        chunk = self.handle.read_chunk()
+        chunk = self.handle.read_chunk(timeout=10)
         if chunk[:1] != b"?":
             raise RuntimeError("Unexpected magic characters")
         return chunk[1:]
