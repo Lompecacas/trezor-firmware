@@ -354,8 +354,8 @@ if __debug__:
 
     WIRE_BUFFER_DEBUG = bytearray(1024)
 
-    async def handle_session(iface: WireInterface) -> None:
-        from trezor import protobuf, wire
+    async def handle_debug_session(iface: WireInterface) -> None:
+        from trezor import protobuf, wire, workflow
         from trezor.wire import codec_v1, context
 
         global DEBUG_CONTEXT
@@ -368,7 +368,7 @@ if __debug__:
             except Exception as e:
                 log.exception(__name__, e)
 
-        while True:
+        while not workflow._WANT_RELOAD:
             try:
                 try:
                     msg = await ctx.read_from_wire()
@@ -432,4 +432,4 @@ if __debug__:
     def boot() -> None:
         import usb
 
-        loop.schedule(handle_session(usb.iface_debug))
+        loop.schedule(handle_debug_session(usb.iface_debug))
