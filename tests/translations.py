@@ -60,7 +60,7 @@ def build_and_sign_blob(
     lang_or_def: translations.JsonDef | Path | str,
     client: Client,
 ) -> bytes:
-    blob = prepare_blob(lang_or_def, client.model, client.version)
+    blob = prepare_blob(lang_or_def, client.model, (*client.version, 1))
     return sign_blob(blob)
 
 

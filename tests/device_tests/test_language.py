@@ -378,7 +378,7 @@ def test_header_trailing_data(client: Client):
     """
     assert client.features.language == "en-US"
     lang = "cs"
-    blob = prepare_blob(lang, client.model, client.version)
+    blob = prepare_blob(lang, client.model, (*client.version, 1))
     blob.header_bytes += b"trailing dataa"
     assert len(blob.header_bytes) % 2 == 0, "Trailing data must keep the 2-alignment"
     language_data = sign_blob(blob)
