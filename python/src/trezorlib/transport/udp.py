@@ -142,7 +142,7 @@ class UdpTransport(ProtocolBasedTransport):
         LOG.log(DUMP_PACKETS, f"sending packet: {chunk.hex()}")
         self.socket.sendall(chunk)
 
-    def read_chunk(self) -> bytes:
+    def read_chunk(self, timeout=None) -> bytes:
         assert self.socket is not None
         while True:
             try:

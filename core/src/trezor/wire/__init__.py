@@ -214,29 +214,31 @@ async def handle_session(iface: WireInterface) -> None:
                 msg = next_msg
                 next_msg = None
 
-            do_not_restart = False
-            try:
-                do_not_restart = await _handle_single_message(ctx, msg)
-            except context.UnexpectedMessage as unexpected:
-                # The workflow was interrupted by an unexpected message. We need to
-                # process it as if it was a new message...
-                next_msg = unexpected.msg
-                # ...and we must not restart because that would lose the message.
-                do_not_restart = True
-                continue
-            except Exception as exc:
-                # Log and ignore. The session handler can only exit explicitly in the
-                # following finally block.
-                if __debug__:
-                    log.exception(__name__, exc)
-            finally:
-                # Unload modules imported by the workflow.  Should not raise.
-                utils.unimport_end(modules)
-
-                if not do_not_restart:
-                    # Let the session be restarted from `main`.
-                    workflow.schedule_reload()
-                    return  # pylint: disable=lost-exception
+            with workflow.unit_of_work:
+                do_not_restart = False
+                try:
+                    do_not_restart = await _handle_single_message(ctx, msg)
+                except context.UnexpectedMessage as unexpected:
+                    # The workflow was interrupted by an unexpected message. We need to
+                    # process it as if it was a new message...
+                    next_msg = unexpected.msg
+                    # ...and we must not restart because that would lose the message.
+                    do_not_restart = True
+                    continue
+                except Exception as exc:
+                    # Log and ignore. The session handler can only exit explicitly in the
+                    # following finally block.
+                    if __debug__:
+                        log.exception(__name__, exc)
+                finally:
+                    # Unload modules imported by the workflow.  Should not raise.
+                    utils.unimport_end(modules)
+                    if do_not_restart:
+                        continue
+                    else:
+                        # Let the session be restarted from `main`.
+                        workflow.schedule_reload()
+                        return  # pylint: disable=lost-exception
 
         except Exception as exc:
             # Log and try again. The session handler can only exit explicitly via

@@ -61,12 +61,10 @@ def _on_close(workflow: loop.spawn) -> None:
     if __debug__:
         log.debug(__name__, "close: %s", workflow.task)
     tasks.remove(workflow)
-    if not tasks and _try_reload_session():
-        return
-    if not tasks and default_constructor:
-        # If no workflows are running, we should create a new default workflow
-        # and run it.
-        start_default()
+    if not tasks:
+        # If no workflows are running, we trigger a session reload, possibly starting
+        # the default workflow.
+        _try_reload_session()
     if __debug__:
         # In debug builds, we dump a memory info right after a workflow is
         # finished.
@@ -176,7 +174,7 @@ def _finalize_default(task: loop.spawn) -> None:
         # No registered workflows are running and we are in the default task
         # finalizer, so when this function finished, nothing will be running.
         # We must schedule a new instance of the default now.
-        start_default()
+        _try_reload_session()
 
 
 class IdleTimer:
@@ -264,14 +262,24 @@ class unit_of_work:
     @classmethod
     def __enter__(cls) -> None:
         if __debug__:
-            log.debug(__name__, "Task %s entering unit of work.", loop.this_task)
+            log.debug(
+                __name__,
+                "Task %s entering unit of work at level %d.",
+                loop.this_task,
+                cls.units_of_work,
+            )
         cls.units_of_work += 1
 
     @classmethod
     def __exit__(cls, exc_type, exc_value, traceback) -> None:
         cls.units_of_work -= 1
         if __debug__:
-            log.debug(__name__, "Task %s leaving unit of work.", loop.this_task)
+            log.debug(
+                __name__,
+                "Task %s leaving unit of work at level %d.",
+                loop.this_task,
+                cls.units_of_work,
+            )
         if cls.units_of_work == 0:
             if __debug__:
                 log.debug(__name__, "No more unit of work.")
@@ -287,7 +295,7 @@ def schedule_reload() -> None:
     _try_reload_session()
 
 
-def _try_reload_session() -> bool:
+def _try_reload_session() -> None:
     if __debug__:
         log.debug(
             __name__,
@@ -296,10 +304,16 @@ def _try_reload_session() -> bool:
             unit_of_work.units_of_work,
             bool(tasks),
         )
-    if _WANT_RELOAD and unit_of_work.units_of_work == 0 and not tasks:
+
+    if tasks or unit_of_work.units_of_work > 0:
+        # early return if there are tasks or units of work
+        return
+
+    if _WANT_RELOAD:
         if __debug__:
             log.debug(__name__, "reload_session: reloading")
         loop.clear()
-        return True
-
-    return False
+    else:
+        if __debug__:
+            log.debug(__name__, "reload_session: restarting default")
+        start_default()
