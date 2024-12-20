@@ -426,8 +426,8 @@ class MessageType(IntEnum):
     BackupDevice = 34
     EntropyRequest = 35
     EntropyAck = 36
-    ResetDeviceContinue = 994
-    ResetDeviceFinish = 995
+    EntropyCheckReady = 994
+    EntropyCheckContinue = 995
     PassphraseRequest = 41
     PassphraseAck = 42
     RecoveryDevice = 45
@@ -3814,12 +3814,22 @@ class EntropyAck(protobuf.MessageType):
         self.entropy = entropy
 
 
-class ResetDeviceContinue(protobuf.MessageType):
+class EntropyCheckReady(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 994
 
 
-class ResetDeviceFinish(protobuf.MessageType):
+class EntropyCheckContinue(protobuf.MessageType):
     MESSAGE_WIRE_TYPE = 995
+    FIELDS = {
+        1: protobuf.Field("finish", "bool", repeated=False, required=False, default=False),
+    }
+
+    def __init__(
+        self,
+        *,
+        finish: Optional["bool"] = False,
+    ) -> None:
+        self.finish = finish
 
 
 class RecoveryDevice(protobuf.MessageType):

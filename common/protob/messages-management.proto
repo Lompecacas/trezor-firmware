@@ -452,24 +452,27 @@ message EntropyRequest {
 /**
  * Request: Provide additional entropy for seed generation function
  * @next Success
+ * @next EntropyCheckReady
  */
 message EntropyAck {
     required bytes entropy = 1;     // 256 bits (32 bytes) of the host's random data
 }
 
 /**
- * Request: Ask Trezor to reveal its internal entropy.
- * @next EntropyAck
+ * Response: Trezor is ready for the next phase of the entropy check protocol.
+ * @next EntropyCheckContinue
+ * @next GetPublicKey
  */
-message ResetDeviceContinue {
+message EntropyCheckReady {
 }
 
 /**
- * Request: Last step in the entropy check protocol. Stores the generated seed.
- * @start
+ * Request: Proceed with the next phase of the entropy check protocol.
  * @next Success
+ * @next EntropyRequest
  */
-message ResetDeviceFinish {
+message EntropyCheckContinue {
+    optional bool finish = 1 [default=false];  // finish the entropy check protocol, store the seed
 }
 
 /**

@@ -78,10 +78,10 @@ pub enum MessageType {
     MessageType_EntropyRequest = 35,
     // @@protoc_insertion_point(enum_value:hw.trezor.messages.MessageType.MessageType_EntropyAck)
     MessageType_EntropyAck = 36,
-    // @@protoc_insertion_point(enum_value:hw.trezor.messages.MessageType.MessageType_ResetDeviceContinue)
-    MessageType_ResetDeviceContinue = 994,
-    // @@protoc_insertion_point(enum_value:hw.trezor.messages.MessageType.MessageType_ResetDeviceFinish)
-    MessageType_ResetDeviceFinish = 995,
+    // @@protoc_insertion_point(enum_value:hw.trezor.messages.MessageType.MessageType_EntropyCheckReady)
+    MessageType_EntropyCheckReady = 994,
+    // @@protoc_insertion_point(enum_value:hw.trezor.messages.MessageType.MessageType_EntropyCheckContinue)
+    MessageType_EntropyCheckContinue = 995,
     // @@protoc_insertion_point(enum_value:hw.trezor.messages.MessageType.MessageType_PassphraseRequest)
     MessageType_PassphraseRequest = 41,
     // @@protoc_insertion_point(enum_value:hw.trezor.messages.MessageType.MessageType_PassphraseAck)
@@ -558,8 +558,8 @@ impl ::protobuf::Enum for MessageType {
             34 => ::std::option::Option::Some(MessageType::MessageType_BackupDevice),
             35 => ::std::option::Option::Some(MessageType::MessageType_EntropyRequest),
             36 => ::std::option::Option::Some(MessageType::MessageType_EntropyAck),
-            994 => ::std::option::Option::Some(MessageType::MessageType_ResetDeviceContinue),
-            995 => ::std::option::Option::Some(MessageType::MessageType_ResetDeviceFinish),
+            994 => ::std::option::Option::Some(MessageType::MessageType_EntropyCheckReady),
+            995 => ::std::option::Option::Some(MessageType::MessageType_EntropyCheckContinue),
             41 => ::std::option::Option::Some(MessageType::MessageType_PassphraseRequest),
             42 => ::std::option::Option::Some(MessageType::MessageType_PassphraseAck),
             45 => ::std::option::Option::Some(MessageType::MessageType_RecoveryDevice),
@@ -811,8 +811,8 @@ impl ::protobuf::Enum for MessageType {
             "MessageType_BackupDevice" => ::std::option::Option::Some(MessageType::MessageType_BackupDevice),
             "MessageType_EntropyRequest" => ::std::option::Option::Some(MessageType::MessageType_EntropyRequest),
             "MessageType_EntropyAck" => ::std::option::Option::Some(MessageType::MessageType_EntropyAck),
-            "MessageType_ResetDeviceContinue" => ::std::option::Option::Some(MessageType::MessageType_ResetDeviceContinue),
-            "MessageType_ResetDeviceFinish" => ::std::option::Option::Some(MessageType::MessageType_ResetDeviceFinish),
+            "MessageType_EntropyCheckReady" => ::std::option::Option::Some(MessageType::MessageType_EntropyCheckReady),
+            "MessageType_EntropyCheckContinue" => ::std::option::Option::Some(MessageType::MessageType_EntropyCheckContinue),
             "MessageType_PassphraseRequest" => ::std::option::Option::Some(MessageType::MessageType_PassphraseRequest),
             "MessageType_PassphraseAck" => ::std::option::Option::Some(MessageType::MessageType_PassphraseAck),
             "MessageType_RecoveryDevice" => ::std::option::Option::Some(MessageType::MessageType_RecoveryDevice),
@@ -1063,8 +1063,8 @@ impl ::protobuf::Enum for MessageType {
         MessageType::MessageType_BackupDevice,
         MessageType::MessageType_EntropyRequest,
         MessageType::MessageType_EntropyAck,
-        MessageType::MessageType_ResetDeviceContinue,
-        MessageType::MessageType_ResetDeviceFinish,
+        MessageType::MessageType_EntropyCheckReady,
+        MessageType::MessageType_EntropyCheckContinue,
         MessageType::MessageType_PassphraseRequest,
         MessageType::MessageType_PassphraseAck,
         MessageType::MessageType_RecoveryDevice,
@@ -1321,8 +1321,8 @@ impl ::protobuf::EnumFull for MessageType {
             MessageType::MessageType_BackupDevice => 22,
             MessageType::MessageType_EntropyRequest => 23,
             MessageType::MessageType_EntropyAck => 24,
-            MessageType::MessageType_ResetDeviceContinue => 25,
-            MessageType::MessageType_ResetDeviceFinish => 26,
+            MessageType::MessageType_EntropyCheckReady => 25,
+            MessageType::MessageType_EntropyCheckContinue => 26,
             MessageType::MessageType_PassphraseRequest => 27,
             MessageType::MessageType_PassphraseAck => 28,
             MessageType::MessageType_RecoveryDevice => 29,
@@ -1561,7 +1561,7 @@ impl MessageType {
 }
 
 static file_descriptor_proto_data: &'static [u8] = b"\
-    \n\x0emessages.proto\x12\x12hw.trezor.messages\x1a\roptions.proto*\xe7U\
+    \n\x0emessages.proto\x12\x12hw.trezor.messages\x1a\roptions.proto*\xe8U\
     \n\x0bMessageType\x12(\n\x16MessageType_Initialize\x10\0\x1a\x0c\x80\xa6\
     \x1d\x01\xb0\xb5\x18\x01\x90\xb5\x18\x01\x12\x1e\n\x10MessageType_Ping\
     \x10\x01\x1a\x08\x80\xa6\x1d\x01\x90\xb5\x18\x01\x12%\n\x13MessageType_S\
@@ -1592,9 +1592,9 @@ static file_descriptor_proto_data: &'static [u8] = b"\
     essageType_BackupDevice\x10\"\x1a\x08\x80\xa6\x1d\x01\x90\xb5\x18\x01\
     \x12(\n\x1aMessageType_EntropyRequest\x10#\x1a\x08\x80\xa6\x1d\x01\x98\
     \xb5\x18\x01\x12$\n\x16MessageType_EntropyAck\x10$\x1a\x08\x80\xa6\x1d\
-    \x01\x90\xb5\x18\x01\x12.\n\x1fMessageType_ResetDeviceContinue\x10\xe2\
-    \x07\x1a\x08\x80\xa6\x1d\x01\x90\xb5\x18\x01\x12,\n\x1dMessageType_Reset\
-    DeviceFinish\x10\xe3\x07\x1a\x08\x80\xa6\x1d\x01\x90\xb5\x18\x01\x12+\n\
+    \x01\x90\xb5\x18\x01\x12,\n\x1dMessageType_EntropyCheckReady\x10\xe2\x07\
+    \x1a\x08\x80\xa6\x1d\x01\x98\xb5\x18\x01\x12/\n\x20MessageType_EntropyCh\
+    eckContinue\x10\xe3\x07\x1a\x08\x80\xa6\x1d\x01\x90\xb5\x18\x01\x12+\n\
     \x1dMessageType_PassphraseRequest\x10)\x1a\x08\x80\xa6\x1d\x01\x98\xb5\
     \x18\x01\x12/\n\x19MessageType_PassphraseAck\x10*\x1a\x10\xc0\xb5\x18\
     \x01\xb0\xb5\x18\x01\x80\xa6\x1d\x01\x90\xb5\x18\x01\x12(\n\x1aMessageTy\

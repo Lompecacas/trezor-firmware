@@ -2602,16 +2602,24 @@ if TYPE_CHECKING:
         def is_type_of(cls, msg: Any) -> TypeGuard["EntropyAck"]:
             return isinstance(msg, cls)
 
-    class ResetDeviceContinue(protobuf.MessageType):
+    class EntropyCheckReady(protobuf.MessageType):
 
         @classmethod
-        def is_type_of(cls, msg: Any) -> TypeGuard["ResetDeviceContinue"]:
+        def is_type_of(cls, msg: Any) -> TypeGuard["EntropyCheckReady"]:
             return isinstance(msg, cls)
 
-    class ResetDeviceFinish(protobuf.MessageType):
+    class EntropyCheckContinue(protobuf.MessageType):
+        finish: "bool"
+
+        def __init__(
+            self,
+            *,
+            finish: "bool | None" = None,
+        ) -> None:
+            pass
 
         @classmethod
-        def is_type_of(cls, msg: Any) -> TypeGuard["ResetDeviceFinish"]:
+        def is_type_of(cls, msg: Any) -> TypeGuard["EntropyCheckContinue"]:
             return isinstance(msg, cls)
 
     class RecoveryDevice(protobuf.MessageType):
