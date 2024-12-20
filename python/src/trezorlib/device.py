@@ -349,7 +349,7 @@ def reset_entropy_check(
         if entropy_check_count is None:
             break
 
-        if not isinstance(resp, messages.Success):
+        if not isinstance(resp, messages.EntropyCheckReady):
             return resp, []
 
         for path in paths:
@@ -359,12 +359,12 @@ def reset_entropy_check(
             xpubs.append(resp.xpub)
 
         if entropy_check_count <= 0:
-            resp = client.call(messages.ResetDeviceFinish())
+            resp = client.call(messages.EntropyCheckContinue(finish=True))
             break
 
         entropy_check_count -= 1
 
-        resp = client.call(messages.ResetDeviceContinue())
+        resp = client.call(messages.EntropyCheckContinue(finish=False))
         if not isinstance(resp, messages.EntropyRequest):
             raise RuntimeError("Invalid response, expected EntropyRequest")
 
