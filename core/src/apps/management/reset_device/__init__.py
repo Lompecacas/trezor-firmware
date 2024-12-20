@@ -105,7 +105,7 @@ async def reset_device(msg: ResetDevice) -> Success:
             # in BIP-39 we store mnemonic string instead of the secret
             secret = bip39.from_data(secret).encode()
 
-        if not msg.entropy_check or not await _entropy_check(secret):
+        if not msg.entropy_check or await _entropy_check(secret):
             break
 
         prev_int_entropy = int_entropy
@@ -143,8 +143,8 @@ async def reset_device(msg: ResetDevice) -> Success:
 
 
 async def _entropy_check(secret: bytes) -> bool:
-    """Returns True to indicate that entropy check loop should continue."""
-    from trezor.messages import GetPublicKey, Success
+    """Returns True to indicate that entropy check loop should end."""
+    from trezor.messages import EntropyCheckContinue, EntropyCheckReady, GetPublicKey
     from trezor.wire.context import call_any
 
     from apps.bitcoin.get_public_key import get_public_key
@@ -154,21 +154,17 @@ async def _entropy_check(secret: bytes) -> bool:
 
     seed = get_seed(mnemonic_secret=secret)
 
-    msg = Success()
+    msg = EntropyCheckReady()
     while True:
         req = await call_any(
             msg,
+            MessageType.EntropyCheckContinue,
             MessageType.GetPublicKey,
-            MessageType.ResetDeviceContinue,
-            MessageType.ResetDeviceFinish,
         )
         assert req.MESSAGE_WIRE_TYPE is not None
 
-        if req.MESSAGE_WIRE_TYPE == MessageType.ResetDeviceContinue:
-            return True
-
-        if req.MESSAGE_WIRE_TYPE == MessageType.ResetDeviceFinish:
-            return False
+        if EntropyCheckContinue.is_type_of(req):
+            return req.finish
 
         assert GetPublicKey.is_type_of(req)
         req.show_display = False
