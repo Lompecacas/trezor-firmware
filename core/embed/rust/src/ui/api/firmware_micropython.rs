@@ -166,6 +166,7 @@ extern "C" fn new_confirm_blob(n_args: usize, args: *const Obj, kwargs: *mut Map
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
 }
 
+#[cfg(feature = "model_mercury")]
 extern "C" fn new_confirm_blob_intro(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let title: TString = kwargs.get(Qstr::MP_QSTR_title)?.try_into()?;
@@ -468,6 +469,7 @@ extern "C" fn new_continue_recovery_homepage(
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
 }
 
+#[cfg(feature = "model_mercury")]
 extern "C" fn new_flow_confirm_output(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let title: Option<TString> = kwargs.get(Qstr::MP_QSTR_title)?.try_into_option()?;
@@ -524,6 +526,7 @@ extern "C" fn new_flow_confirm_output(n_args: usize, args: *const Obj, kwargs: *
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
 }
 
+#[cfg(feature = "model_mercury")]
 extern "C" fn new_flow_confirm_set_new_pin(
     n_args: usize,
     args: *const Obj,
@@ -539,6 +542,7 @@ extern "C" fn new_flow_confirm_set_new_pin(
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
 }
 
+#[cfg(feature = "model_mercury")]
 extern "C" fn new_flow_get_address(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let title: TString = kwargs.get(Qstr::MP_QSTR_title)?.try_into()?;
@@ -576,6 +580,7 @@ extern "C" fn new_flow_get_address(n_args: usize, args: *const Obj, kwargs: *mut
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
 }
 
+#[cfg(feature = "model_tr")]
 extern "C" fn new_multiple_pages_texts(n_args: usize, args: *const Obj, kwargs: *mut Map) -> Obj {
     let block = move |_args: &[Obj], kwargs: &Map| {
         let title: TString = kwargs.get(Qstr::MP_QSTR_title)?.try_into()?;
@@ -927,6 +932,7 @@ extern "C" fn new_show_share_words(n_args: usize, args: *const Obj, kwargs: *mut
     unsafe { util::try_with_args_and_kwargs(n_args, args, kwargs, block) }
 }
 
+#[cfg(feature = "model_mercury")]
 extern "C" fn new_show_share_words_mercury(
     n_args: usize,
     args: *const Obj,
@@ -1191,20 +1197,6 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     ///     """Confirm byte sequence data."""
     Qstr::MP_QSTR_confirm_blob => obj_fn_kw!(0, new_confirm_blob).as_obj(),
 
-    /// def confirm_blob_intro(
-    ///     *,
-    ///     title: str,
-    ///     data: str | bytes,
-    ///     subtitle: str | None = None,
-    ///     verb: str | None = None,
-    ///     verb_cancel: str | None = None,
-    ///     chunkify: bool = False,
-    /// ) -> LayoutObj[UiResult]:
-    ///     """Confirm byte sequence data by showing only the first page of the data
-    ///     and instructing the user to access the menu in order to view all the data,
-    ///     which can then be confirmed using confirm_blob."""
-    Qstr::MP_QSTR_confirm_blob_intro => obj_fn_kw!(0, new_confirm_blob_intro).as_obj(),
-
     /// def confirm_coinjoin(
     ///     *,
     ///     max_rounds: str,
@@ -1353,68 +1345,6 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     /// ) -> LayoutObj[UiResult]:
     ///     """Device recovery homescreen."""
     Qstr::MP_QSTR_continue_recovery_homepage => obj_fn_kw!(0, new_continue_recovery_homepage).as_obj(),
-
-    /// def flow_confirm_output(
-    ///     *,
-    ///     title: str | None,
-    ///     subtitle: str | None,
-    ///     message: str,
-    ///     amount: str | None,
-    ///     chunkify: bool,
-    ///     text_mono: bool,
-    ///     account: str | None,
-    ///     account_path: str | None,
-    ///     br_code: ButtonRequestType,
-    ///     br_name: str,
-    ///     address: str | None,
-    ///     address_title: str | None,
-    ///     summary_items: Iterable[tuple[str, str]] | None = None,
-    ///     fee_items: Iterable[tuple[str, str]] | None = None,
-    ///     summary_title: str | None = None,
-    ///     summary_br_code: ButtonRequestType | None = None,
-    ///     summary_br_name: str | None = None,
-    ///     cancel_text: str | None = None,
-    /// ) -> LayoutObj[UiResult]:
-    ///     """Confirm the recipient, (optionally) confirm the amount and (optionally) confirm the summary and present a Hold to Sign page."""
-    Qstr::MP_QSTR_flow_confirm_output => obj_fn_kw!(0, new_flow_confirm_output).as_obj(),
-
-    // TODO: supply more arguments for Wipe code setting (mercury)
-    ///
-    /// def flow_confirm_set_new_pin(
-    ///     *,
-    ///     title: str,
-    ///     description: str,
-    /// ) -> LayoutObj[UiResult]:
-    ///     """Confirm new PIN setup with an option to cancel action."""
-    Qstr::MP_QSTR_flow_confirm_set_new_pin => obj_fn_kw!(0, new_flow_confirm_set_new_pin).as_obj(),
-
-    /// def flow_get_address(
-    ///     *,
-    ///     address: str | bytes,
-    ///     title: str,
-    ///     description: str | None,
-    ///     extra: str | None,
-    ///     chunkify: bool,
-    ///     address_qr: str,
-    ///     case_sensitive: bool,
-    ///     account: str | None,
-    ///     path: str | None,
-    ///     xpubs: list[tuple[str, str]],
-    ///     title_success: str,
-    ///     br_code: ButtonRequestType,
-    ///     br_name: str,
-    /// ) -> LayoutObj[UiResult]:
-    ///     """Get address / receive funds."""
-    Qstr::MP_QSTR_flow_get_address => obj_fn_kw!(0, new_flow_get_address).as_obj(),
-
-    /// def multiple_pages_texts(
-    ///     *,
-    ///     title: str,
-    ///     verb: str,
-    ///     items: list[str],
-    /// ) -> LayoutObj[UiResult]:
-    ///     """Show multiple texts, each on its own page. TR specific."""
-    Qstr::MP_QSTR_multiple_pages_texts => obj_fn_kw!(0, new_multiple_pages_texts).as_obj(),
 
     /// def prompt_backup() -> LayoutObj[UiResult]:
     ///     """Strongly recommend user to do a backup."""
@@ -1625,18 +1555,6 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     ///     """Show mnemonic for backup."""
     Qstr::MP_QSTR_show_share_words => obj_fn_kw!(0, new_show_share_words).as_obj(),
 
-    /// def show_share_words_mercury(
-    ///     *,
-    ///     words: Iterable[str],
-    ///     subtitle: str | None,
-    ///     instructions: Iterable[str],
-    ///     text_footer: str | None,
-    ///     text_confirm: str,
-    /// ) -> LayoutObj[UiResult]:
-    ///     """Show mnemonic for wallet backup preceded by an instruction screen and followed by a
-    ///     confirmation screen."""
-    Qstr::MP_QSTR_show_share_words_mercury => obj_fn_kw!(0, new_show_share_words_mercury).as_obj(),
-
     /// def show_simple(
     ///     *,
     ///     text: str,
@@ -1705,4 +1623,103 @@ pub static mp_module_trezorui_api: Module = obj_module! {
     ///     DONE: "ClassVar[LayoutState]"
     Qstr::MP_QSTR_LayoutState => LAYOUT_STATE.as_obj(),
 
+};
+
+#[cfg(feature = "model_tr")]
+#[no_mangle]
+pub static mp_module_trezorui_api_tr: Module = obj_module! {
+    /// def multiple_pages_texts(
+    ///     *,
+    ///     title: str,
+    ///     verb: str,
+    ///     items: list[str],
+    /// ) -> LayoutObj[UiResult]:
+    ///     """Show multiple texts, each on its own page. TR specific."""
+    Qstr::MP_QSTR_multiple_pages_texts => obj_fn_kw!(0, new_multiple_pages_texts).as_obj(),
+};
+
+#[cfg(feature = "model_mercury")]
+#[no_mangle]
+pub static mp_module_trezorui_api_mercury: Module = obj_module! {
+    /// from trezorui_api import UiResult
+    ///
+
+    /// def confirm_blob_intro(
+    ///     *,
+    ///     title: str,
+    ///     data: str | bytes,
+    ///     subtitle: str | None = None,
+    ///     verb: str | None = None,
+    ///     verb_cancel: str | None = None,
+    ///     chunkify: bool = False,
+    /// ) -> LayoutObj[UiResult]:
+    ///     """Confirm byte sequence data by showing only the first page of the data
+    ///     and instructing the user to access the menu in order to view all the data,
+    ///     which can then be confirmed using confirm_blob."""
+    Qstr::MP_QSTR_confirm_blob_intro => obj_fn_kw!(0, new_confirm_blob_intro).as_obj(),
+
+    /// def show_share_words_mercury(
+    ///     *,
+    ///     words: Iterable[str],
+    ///     subtitle: str | None,
+    ///     instructions: Iterable[str],
+    ///     text_footer: str | None,
+    ///     text_confirm: str,
+    /// ) -> LayoutObj[UiResult]:
+    ///     """Show mnemonic for wallet backup preceded by an instruction screen and followed by a
+    ///     confirmation screen."""
+    Qstr::MP_QSTR_show_share_words_mercury => obj_fn_kw!(0, new_show_share_words_mercury).as_obj(),
+
+    /// def flow_confirm_output(
+    ///     *,
+    ///     title: str | None,
+    ///     subtitle: str | None,
+    ///     message: str,
+    ///     amount: str | None,
+    ///     chunkify: bool,
+    ///     text_mono: bool,
+    ///     account: str | None,
+    ///     account_path: str | None,
+    ///     br_code: ButtonRequestType,
+    ///     br_name: str,
+    ///     address: str | None,
+    ///     address_title: str | None,
+    ///     summary_items: Iterable[tuple[str, str]] | None = None,
+    ///     fee_items: Iterable[tuple[str, str]] | None = None,
+    ///     summary_title: str | None = None,
+    ///     summary_br_code: ButtonRequestType | None = None,
+    ///     summary_br_name: str | None = None,
+    ///     cancel_text: str | None = None,
+    /// ) -> LayoutObj[UiResult]:
+    ///     """Confirm the recipient, (optionally) confirm the amount and (optionally) confirm the summary and present a Hold to Sign page."""
+    Qstr::MP_QSTR_flow_confirm_output => obj_fn_kw!(0, new_flow_confirm_output).as_obj(),
+
+    // TODO: supply more arguments for Wipe code setting (mercury)
+    ///
+    /// def flow_confirm_set_new_pin(
+    ///     *,
+    ///     title: str,
+    ///     description: str,
+    /// ) -> LayoutObj[UiResult]:
+    ///     """Confirm new PIN setup with an option to cancel action."""
+    Qstr::MP_QSTR_flow_confirm_set_new_pin => obj_fn_kw!(0, new_flow_confirm_set_new_pin).as_obj(),
+
+    /// def flow_get_address(
+    ///     *,
+    ///     address: str | bytes,
+    ///     title: str,
+    ///     description: str | None,
+    ///     extra: str | None,
+    ///     chunkify: bool,
+    ///     address_qr: str,
+    ///     case_sensitive: bool,
+    ///     account: str | None,
+    ///     path: str | None,
+    ///     xpubs: list[tuple[str, str]],
+    ///     title_success: str,
+    ///     br_code: ButtonRequestType,
+    ///     br_name: str,
+    /// ) -> LayoutObj[UiResult]:
+    ///     """Get address / receive funds."""
+    Qstr::MP_QSTR_flow_get_address => obj_fn_kw!(0, new_flow_get_address).as_obj(),
 };

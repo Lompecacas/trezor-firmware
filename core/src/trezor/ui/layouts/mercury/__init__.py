@@ -4,6 +4,7 @@ import trezorui_api
 from trezor import TR, ui, utils
 from trezor.enums import ButtonRequestType
 from trezor.wire import ActionCancelled
+import trezorui_api_mercury
 
 from ..common import draw_simple, interact, raise_if_not_confirmed, with_info
 
@@ -242,7 +243,7 @@ async def show_address(
     )
 
     await raise_if_not_confirmed(
-        trezorui_api.flow_get_address(
+        trezorui_api_mercury.flow_get_address(
             address=address,
             title=title or TR.address__title_receive_address,
             description=network or "",
@@ -388,7 +389,7 @@ async def confirm_output(
         title = TR.send__title_sending_to
 
     await raise_if_not_confirmed(
-        trezorui_api.flow_confirm_output(
+        trezorui_api_mercury.flow_confirm_output(
             title=TR.words__address,
             subtitle=title,
             message=address,
@@ -765,7 +766,7 @@ if not utils.BITCOIN_ONLY:
         chunkify: bool = False,
     ) -> None:
         await raise_if_not_confirmed(
-            trezorui_api.flow_confirm_output(
+            trezorui_api_mercury.flow_confirm_output(
                 title=TR.words__address,
                 subtitle=(
                     TR.words__recipient
@@ -818,7 +819,7 @@ if not utils.BITCOIN_ONLY:
                 (TR.send__maximum_fee, maximum_fee),
             )
         await raise_if_not_confirmed(
-            trezorui_api.flow_confirm_output(
+            trezorui_api_mercury.flow_confirm_output(
                 title=verb,
                 subtitle=None,
                 message=intro_question,
@@ -1209,7 +1210,9 @@ def confirm_set_new_pin(
     br_code: ButtonRequestType = BR_CODE_OTHER,
 ) -> Awaitable[None]:
     return raise_if_not_confirmed(
-        trezorui_api.flow_confirm_set_new_pin(title=title, description=description),
+        trezorui_api_mercury.flow_confirm_set_new_pin(
+            title=title, description=description
+        ),
         br_name,
         br_code,
     )

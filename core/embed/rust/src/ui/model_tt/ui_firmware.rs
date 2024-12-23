@@ -126,6 +126,7 @@ impl FirmwareUI for UIModelTT {
             .into_layout()
     }
 
+    #[cfg(feature = "model_mercury")]
     fn confirm_blob_intro(
         _title: TString<'static>,
         _data: Obj,
@@ -547,6 +548,7 @@ impl FirmwareUI for UIModelTT {
         }
     }
 
+    #[cfg(feature = "model_mercury")]
     fn flow_confirm_output(
         _title: Option<TString<'static>>,
         _subtitle: Option<TString<'static>>,
@@ -572,6 +574,7 @@ impl FirmwareUI for UIModelTT {
         ))
     }
 
+    #[cfg(feature = "model_mercury")]
     fn flow_confirm_set_new_pin(
         _title: TString<'static>,
         _description: TString<'static>,
@@ -581,6 +584,7 @@ impl FirmwareUI for UIModelTT {
         ))
     }
 
+    #[cfg(feature = "model_mercury")]
     fn flow_get_address(
         _address: Obj,
         _title: TString<'static>,
@@ -601,6 +605,7 @@ impl FirmwareUI for UIModelTT {
         ))
     }
 
+    #[cfg(feature = "model_tr")]
     fn multiple_pages_texts(
         _title: TString<'static>,
         _verb: TString<'static>,
@@ -1024,6 +1029,7 @@ impl FirmwareUI for UIModelTT {
         Ok(layout)
     }
 
+    #[cfg(feature = "model_mercury")]
     fn show_share_words_mercury(
         _words: heapless::Vec<TString<'static>, 33>,
         _subtitle: Option<TString<'static>>,

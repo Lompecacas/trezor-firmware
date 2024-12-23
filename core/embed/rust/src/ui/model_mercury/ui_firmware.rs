@@ -537,6 +537,7 @@ impl FirmwareUI for UIMercury {
         LayoutObj::new_root(flow)
     }
 
+    #[cfg(feature = "model_mercury")]
     fn flow_confirm_output(
         title: Option<TString<'static>>,
         subtitle: Option<TString<'static>>,
@@ -628,6 +629,7 @@ impl FirmwareUI for UIMercury {
         Ok(flow)
     }
 
+    #[cfg(feature = "model_mercury")]
     fn flow_confirm_set_new_pin(
         title: TString<'static>,
         description: TString<'static>,
@@ -636,6 +638,7 @@ impl FirmwareUI for UIMercury {
         Ok(flow)
     }
 
+    #[cfg(feature = "model_mercury")]
     fn flow_get_address(
         address: Obj,
         title: TString<'static>,
@@ -669,6 +672,7 @@ impl FirmwareUI for UIMercury {
         Ok(flow)
     }
 
+    #[cfg(feature = "model_tr")]
     fn multiple_pages_texts(
         _title: TString<'static>,
         _verb: TString<'static>,
@@ -1026,6 +1030,7 @@ impl FirmwareUI for UIMercury {
         ))
     }
 
+    #[cfg(feature = "model_mercury")]
     fn show_share_words_mercury(
         words: heapless::Vec<TString<'static>, 33>,
         subtitle: Option<TString<'static>>,

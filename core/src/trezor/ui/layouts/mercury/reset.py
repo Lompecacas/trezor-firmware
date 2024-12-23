@@ -1,6 +1,7 @@
-from typing import Awaitable, Callable, Sequence
+rom typing import Awaitable, Callable, Sequence
 
 import trezorui_api
+import trezorui_api_mercury
 from trezor import TR, ui
 from trezor.enums import ButtonRequestType
 from trezor.wire import ActionCancelled
@@ -38,7 +39,7 @@ def show_share_words(
     text_confirm = TR.reset__words_written_down_template.format(words_count)
 
     return raise_if_not_confirmed(
-        trezorui_api.show_share_words_mercury(
+        trezorui_api_mercury.show_share_words_mercury(
             words=share_words,
             subtitle=subtitle,
             instructions=instructions,

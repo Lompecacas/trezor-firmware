@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import trezorui_api
+import trezorui_api_tr
 from trezor import TR, ui, utils
 from trezor.enums import ButtonRequestType
 from trezor.wire import ActionCancelled
@@ -1257,7 +1258,7 @@ def _confirm_multiple_pages_texts(
     br_code: ButtonRequestType = BR_CODE_OTHER,
 ) -> Awaitable[None]:
     return raise_if_not_confirmed(
-        trezorui_api.multiple_pages_texts(
+        trezorui_api_tr.multiple_pages_texts(
             title=title,
             verb=verb,
             items=items,

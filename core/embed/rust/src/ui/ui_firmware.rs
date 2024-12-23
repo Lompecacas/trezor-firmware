@@ -59,6 +59,7 @@ pub trait FirmwareUI {
         cancel: bool,
     ) -> Result<Gc<LayoutObj>, Error>; // TODO: return LayoutMaybeTrace
 
+    #[cfg(feature = "model_mercury")]
     fn confirm_blob_intro(
         title: TString<'static>,
         data: Obj, // TODO: replace Obj
@@ -172,6 +173,7 @@ pub trait FirmwareUI {
 
     fn check_homescreen_format(image: BinaryData, accept_toif: bool) -> bool;
 
+    #[cfg(feature = "model_mercury")]
     #[allow(clippy::too_many_arguments)]
     fn flow_confirm_output(
         title: Option<TString<'static>>,
@@ -194,11 +196,13 @@ pub trait FirmwareUI {
         cancel_text: Option<TString<'static>>,
     ) -> Result<impl LayoutMaybeTrace, Error>;
 
+    #[cfg(feature = "model_mercury")]
     fn flow_confirm_set_new_pin(
         title: TString<'static>,
         description: TString<'static>,
     ) -> Result<impl LayoutMaybeTrace, Error>;
 
+    #[cfg(feature = "model_mercury")]
     #[allow(clippy::too_many_arguments)]
     fn flow_get_address(
         address: Obj, // TODO: replace Obj
@@ -217,6 +221,7 @@ pub trait FirmwareUI {
     ) -> Result<impl LayoutMaybeTrace, Error>;
 
     // TODO: this is TR specific and used only in confirm_set_new_pin
+    #[cfg(feature = "model_tr")]
     fn multiple_pages_texts(
         title: TString<'static>,
         verb: TString<'static>,
@@ -357,6 +362,7 @@ pub trait FirmwareUI {
 
     // TODO: merge with `show_share_words` instead of having specific version for
     // mercury
+    #[cfg(feature = "model_mercury")]
     fn show_share_words_mercury(
         words: Vec<TString<'static>, 33>,
         subtitle: Option<TString<'static>>,
