@@ -4,7 +4,7 @@ use crate::{
     error::{value_error, Error},
     io::BinaryData,
     micropython::{gc::Gc, iter::IterBuf, list::List, obj::Obj, util},
-    strutil::TString,
+    strutil::{format_i64, TString},
     translations::TR,
     ui::{
         component::{
@@ -20,7 +20,8 @@ use crate::{
             },
             Border, ComponentExt, Empty, FormattedText, Jpeg, Label, Never, Timeout,
         },
-        geometry,
+        display::Font,
+        geometry::{self, Offset},
         layout::{
             obj::{LayoutMaybeTrace, LayoutObj, RootComponent},
             util::{ConfirmBlob, PropsList, RecoveryType},
@@ -57,30 +58,42 @@ impl FirmwareUI for UIBolt {
         _prompt_screen: bool,
         _prompt_title: Option<TString<'static>>,
     ) -> Result<impl LayoutMaybeTrace, Error> {
-        let paragraphs = {
+        let formatted = {
             let action = action.unwrap_or("".into());
             let description = description.unwrap_or("".into());
-            let mut paragraphs = ParagraphVecShort::new();
-            if !reverse {
-                paragraphs
-                    .add(Paragraph::new(&theme::TEXT_DEMIBOLD, action))
-                    .add(Paragraph::new(&theme::TEXT_NORMAL, description));
+
+            let action_tmpl: TString = TR::reset__select_word_template.into();
+            let arg1: TString = TString::from("3rd");
+
+            let ops = if !reverse {
+                let mut ops_text = OpTextLayout::new(theme::TEXT_NORMAL);
+                OpTextLayout::new(theme::TEXT_NORMAL)
+                    // .text_demibold(action)
+                    .text_fmt(action_tmpl, arg1)
+                    .newline()
+                    .text_normal(description)
+                    .offset(Offset::x(Font::NORMAL.text_width(" ")))
+                    .text_demibold(description)
             } else {
-                paragraphs
-                    .add(Paragraph::new(&theme::TEXT_NORMAL, description))
-                    .add(Paragraph::new(&theme::TEXT_DEMIBOLD, action));
-            }
-            paragraphs.into_paragraphs()
+                OpTextLayout::new(theme::TEXT_NORMAL)
+                    .text_normal(description)
+                    .newline()
+                    .text_demibold(action)
+            };
+
+            FormattedText::new(ops).vertically_centered()
         };
 
         let mut page = if hold {
-            ButtonPage::new(paragraphs, theme::BG).with_hold()?
+            ButtonPage::new(formatted, theme::BG).with_hold()?
         } else {
-            ButtonPage::new(paragraphs, theme::BG).with_cancel_confirm(verb_cancel, verb)
+            ButtonPage::new(formatted, theme::BG).with_cancel_confirm(verb_cancel, verb)
         };
+
         if hold && hold_danger {
             page = page.with_confirm_style(theme::button_danger())
         }
+
         let layout = RootComponent::new(Frame::left_aligned(theme::label_title(), title, page));
         Ok(layout)
     }

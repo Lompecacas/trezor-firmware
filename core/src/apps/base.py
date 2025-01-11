@@ -274,7 +274,13 @@ async def handle_Ping(msg: Ping) -> Success:
         from trezor.enums import ButtonRequestType as B
         from trezor.ui.layouts import confirm_action
 
-        await confirm_action("ping", TR.words__confirm, "ping", br_code=B.ProtectCall)
+        await confirm_action(
+            "ping",
+            TR.words__confirm,
+            "action",
+            description="description",
+            br_code=B.ProtectCall,
+        )
     return Success(message=msg.message)
 
 

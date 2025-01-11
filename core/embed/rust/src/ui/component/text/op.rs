@@ -136,6 +136,33 @@ impl<'a> OpTextLayout<'a> {
                         }
                     }
                 }
+                Op::TextFmt(tmpl, arg) => {
+                    // Split the template on {0}
+                    tmpl.map(|t| {
+                        let mut parts = heapless::Vec::<&str, 3>::new();
+                        let mut start = 0;
+                        while let Some(pos) = t[start..].find("{0}") {
+                            let abs_pos = start + pos;
+                            // Add the part before {0}
+                            unwrap!(parts.push(&t[start..abs_pos]));
+                            // Skip the {0}
+                            start = abs_pos + 3;
+                        }
+                        // Add remaining text after last {0}
+                        if start < t.len() {
+                            unwrap!(parts.push(&t[start..]));
+                        }
+
+                        for (i, part) in parts.iter().enumerate() {
+                            if i > 0 {
+                                // Insert the argument between parts
+                                arg.map(|t| layout.layout_text(t, cursor, sink));
+                            }
+                            // Layout the template part
+                            layout.layout_text(part, cursor, sink);
+                        }
+                    });
+                }
             }
         }
 
@@ -200,6 +227,10 @@ impl<'a> OpTextLayout<'a> {
 
     pub fn text(self, text: TString<'a>) -> Self {
         self.with_new_item(Op::Text(text, false))
+    }
+
+    pub fn text_fmt(self, text_tmpl: TString<'a>, arg1: TString<'a>) -> Self {
+        self.with_new_item(Op::TextFmt(text_tmpl, arg1))
     }
 
     pub fn newline(self) -> Self {
@@ -276,6 +307,7 @@ pub enum Op<'a> {
     /// Bool signifies whether this is a split Text Op continued from previous
     /// page. If true, a leading ellipsis will be rendered.
     Text(TString<'a>, bool),
+    TextFmt(TString<'a>, TString<'a>),
     /// Set current text color.
     Color(Color),
     /// Set currently used font.
