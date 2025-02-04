@@ -34,6 +34,7 @@ TREZORD_HOST = "http://127.0.0.1:21325"
 TREZORD_ORIGIN_HEADER = {"Origin": "https://python.trezor.io"}
 
 TREZORD_VERSION_MODERN = (2, 0, 25)
+TREZORD_VERSION_THP_SUPPORT = (2, 0, 31)  # TODO add correct value
 
 CONNECTION = requests.Session()
 CONNECTION.headers.update(TREZORD_ORIGIN_HEADER)
@@ -64,8 +65,13 @@ def is_legacy_bridge() -> bool:
     return get_bridge_version() < TREZORD_VERSION_MODERN
 
 
+def supports_protocolV2() -> bool:
+    return get_bridge_version() >= TREZORD_VERSION_THP_SUPPORT
+
+
 def detect_protocol_version(transport: "BridgeTransport") -> int:
     from .. import mapping, messages
+    from ..messages import FailureType
 
     protocol_version = ProtocolVersion.PROTOCOL_V1
     request_type, request_data = mapping.DEFAULT_MAPPING.encode(messages.Initialize())
@@ -73,8 +79,12 @@ def detect_protocol_version(transport: "BridgeTransport") -> int:
     transport.deprecated_write(request_type, request_data)
 
     response_type, response_data = transport.deprecated_read()
-    _ = mapping.DEFAULT_MAPPING.decode(response_type, response_data)
+    response = mapping.DEFAULT_MAPPING.decode(response_type, response_data)
     transport.deprecated_begin_session()
+    if isinstance(response, messages.Failure):
+        if response.code == FailureType.InvalidProtocol:
+            LOG.debug("Protocol V2 detected")
+            protocol_version = ProtocolVersion.PROTOCOL_V2
 
     return protocol_version
 
