@@ -10,3 +10,4 @@ typing_extensions>=4.7.1
 construct-classes>=0.1.2
 cryptography>=41
 dbus-next>=0.2.3
+platformdirs>=2
