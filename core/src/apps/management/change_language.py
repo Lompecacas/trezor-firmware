@@ -103,9 +103,11 @@ async def do_change_language(
     # (with the idea of deleting the data if the fingerprint does not match),
     # attackers could still write some data into storage and then unplug the device.
     blob = utils.empty_bytearray(translations.area_bytesize())
+    rope = []
 
     # Write the header
-    blob.extend(header_data)
+    #blob.extend(header_data)
+    rope.append(header_data)
 
     # Requesting the data in chunks and storing them in the blob
     # Also checking the hash of the data for consistency
@@ -115,19 +117,23 @@ async def do_change_language(
     while data_left > 0:
         data_chunk = await _get_data_chunk(data_left, offset)
         report(len(blob) * 1000 // data_length)
-        blob.extend(data_chunk)
+        #blob.extend(data_chunk)
+        rope.append(data_chunk)
         data_left -= len(data_chunk)
         offset += len(data_chunk)
 
     # When the data do not match the hash, do not write anything
     try:
-        translations.verify(blob)
+        translations.verify(rope)
     except Exception:
         raise DataError("Translation data verification failed.")
 
     translations.deinit()
     translations.erase()
-    translations.write(blob, 0)
+    offset = 0
+    for chunk in rope:
+        translations.write(chunk, offset)
+        offset += len(chunk)
     translations.init()
     report(1000)
     await _show_success(silent_install, show_display)

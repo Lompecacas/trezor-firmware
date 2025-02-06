@@ -2,18 +2,9 @@ use crate::{
     error::Error,
     io::InputStream,
     micropython::{
-        buffer::{get_buffer, StrBuffer},
-        ffi,
-        macros::{
+        buffer::{get_buffer, StrBuffer}, ffi, gc::Gc, list::List, macros::{
             attr_tuple, obj_dict, obj_fn_0, obj_fn_1, obj_fn_2, obj_map, obj_module, obj_type,
-        },
-        map::Map,
-        module::Module,
-        obj::Obj,
-        qstr::Qstr,
-        simple_type::SimpleTypeObj,
-        typ::Type,
-        util,
+        }, map::Map, module::Module, obj::Obj, qstr::Qstr, simple_type::SimpleTypeObj, typ::Type, util
     },
     trezorhal::translations,
 };
@@ -169,8 +160,13 @@ extern "C" fn write(data: Obj, offset: Obj) -> Obj {
 extern "C" fn verify(data: Obj) -> Obj {
     let block = || {
         // SAFETY: reference is discarded at the end of the block
-        let data = unsafe { get_buffer(data)? };
-        super::blob::Translations::new(data)?;
+        if data.is_bytes() {
+            let data = unsafe { get_buffer(data)? };
+            super::blob::Translations::new(data)?;
+        } else {
+            let list: Gc<List> = data.try_into()?;
+            // TODO
+        }
         Ok(Obj::const_none())
     };
 
