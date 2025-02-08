@@ -4,7 +4,9 @@ use crate::{
     time::Instant,
     translations::TR,
     ui::{
-        component::{paginated::PageMsg, Component, ComponentExt, Event, EventCtx, Pad, Paginate},
+        component::{
+            paginated::PageMsg, Component, ComponentExt, Event, EventCtx, Pad, PaginateFull,
+        },
         constant,
         display::{self, Color},
         geometry::{Insets, Rect},
@@ -48,7 +50,7 @@ pub struct ButtonPage<T> {
 
 impl<T> ButtonPage<T>
 where
-    T: Paginate,
+    T: PaginateFull,
     T: Component,
 {
     pub fn with_hold(mut self) -> Result<Self, Error> {
@@ -62,7 +64,7 @@ where
 
 impl<T> ButtonPage<T>
 where
-    T: Paginate,
+    T: PaginateFull,
     T: Component,
 {
     pub fn new(content: T, background: Color) -> Self {
@@ -157,7 +159,7 @@ where
 
         // Change the page in the content, make sure it gets completely repainted and
         // clear the background under it.
-        self.content.change_page(self.scrollbar.active_page);
+        self.content.change_page(self.scrollbar.active_page as u16);
         self.content.request_complete_repaint(ctx);
         self.pad.clear();
 
@@ -292,7 +294,7 @@ enum HandleResult<T> {
 
 impl<T> Component for ButtonPage<T>
 where
-    T: Paginate,
+    T: PaginateFull,
     T: Component,
 {
     type Msg = PageMsg<T::Msg>;
@@ -319,11 +321,11 @@ where
         // to make space for a scrollbar if it doesn't fit.
         self.content.place(layout.content_single_page);
         let page_count = {
-            let count = self.content.page_count();
+            let count = self.content.pager().total();
             if count > 1 {
                 self.content.place(layout.content);
-                self.content.page_count() // Make sure to re-count it with the
-                                          // new size.
+                self.content.pager().total() // Make sure to re-count it with the
+                                             // new size.
             } else {
                 count // Content fits on a single page.
             }
@@ -335,7 +337,7 @@ where
 
         // Now that we finally have the page count, we can setup the scrollbar and the
         // swiper.
-        self.scrollbar.set_count_and_active_page(page_count, 0);
+        self.scrollbar.set_count_and_active_page(page_count as usize, 0);
         self.setup_swipe();
 
         self.loader.place(Self::loader_area());

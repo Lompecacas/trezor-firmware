@@ -1,7 +1,7 @@
 use crate::{
     translations::TR,
     ui::{
-        component::{Child, Component, ComponentExt, Event, EventCtx, Pad, PageMsg, Paginate},
+        component::{Child, Component, ComponentExt, Event, EventCtx, Pad, PageMsg, PaginateFull},
         display::Color,
         geometry::{Insets, Rect},
         shape::Renderer,
@@ -15,7 +15,7 @@ use super::{
 
 pub struct ButtonPage<T>
 where
-    T: Component + Paginate,
+    T: Component + PaginateFull,
 {
     page_count: usize,
     active_page: usize,
@@ -30,7 +30,7 @@ where
 
 impl<T> ButtonPage<T>
 where
-    T: Component + Paginate,
+    T: Component + PaginateFull,
 {
     pub fn new(content: T, background: Color) -> Self {
         Self {
@@ -98,7 +98,7 @@ where
     /// sure it gets completely repainted. Also updating the buttons.
     fn change_page(&mut self, ctx: &mut EventCtx) {
         self.content.mutate(ctx, |ctx, content| {
-            content.change_page(self.active_page);
+            content.change_page(self.active_page as u16);
             content.request_complete_repaint(ctx);
         });
         self.update_buttons(ctx);
@@ -138,7 +138,7 @@ where
 
 impl<T> ScrollableContent for ButtonPage<T>
 where
-    T: Component + Paginate,
+    T: Component + PaginateFull,
 {
     fn page_count(&self) -> usize {
         self.page_count
@@ -150,7 +150,7 @@ where
 
 impl<T> Component for ButtonPage<T>
 where
-    T: Component + Paginate,
+    T: Component + PaginateFull,
 {
     type Msg = PageMsg<T::Msg>;
 
@@ -164,7 +164,7 @@ where
             .place(content_area.inset(Insets::top(constant::LINE_SPACE)));
         // Need to be called here, only after content is placed
         // and we can calculate the page count.
-        self.page_count = self.content.page_count();
+        self.page_count = self.content.pager().total() as usize;
         self.set_buttons_for_initial_page(self.page_count);
         self.buttons.place(button_area);
         bounds
@@ -218,7 +218,7 @@ where
 #[cfg(feature = "ui_debug")]
 impl<T> crate::trace::Trace for ButtonPage<T>
 where
-    T: crate::trace::Trace + Paginate + Component,
+    T: crate::trace::Trace + PaginateFull + Component,
 {
     fn trace(&self, t: &mut dyn crate::trace::Tracer) {
         t.component("ButtonPage");

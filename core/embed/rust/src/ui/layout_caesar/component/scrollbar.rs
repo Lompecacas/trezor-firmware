@@ -1,8 +1,8 @@
 use crate::ui::{
-    component::{Component, Event, EventCtx, Never, Pad, Paginate},
+    component::{Component, Event, EventCtx, Never, Pad, PaginateFull},
     geometry::{Offset, Point, Rect},
-    shape,
-    shape::Renderer,
+    shape::{self, Renderer},
+    util::Pager,
 };
 
 use super::super::theme;
@@ -224,13 +224,13 @@ impl Component for ScrollBar {
     }
 }
 
-impl Paginate for ScrollBar {
-    fn page_count(&self) -> usize {
-        self.page_count
+impl PaginateFull for ScrollBar {
+    fn pager(&self) -> Pager {
+        Pager::new(self.page_count as u16).with_current(self.active_page as u16)
     }
 
-    fn change_page(&mut self, active_page: usize) {
-        self.active_page = active_page;
+    fn change_page(&mut self, active_page: u16) {
+        self.active_page = active_page as usize;
     }
 }
 

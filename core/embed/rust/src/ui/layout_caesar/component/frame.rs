@@ -1,9 +1,10 @@
 use crate::{
     strutil::TString,
     ui::{
-        component::{Child, Component, ComponentExt, Event, EventCtx, Paginate},
+        component::{Child, Component, ComponentExt, Event, EventCtx, PaginateFull},
         geometry::{Insets, Rect},
         shape::Renderer,
+        util::Pager,
     },
 };
 
@@ -83,19 +84,20 @@ where
     }
 }
 
-impl<T> Paginate for Frame<T>
+impl<T> PaginateFull for Frame<T>
 where
-    T: Component + Paginate,
+    T: Component + PaginateFull,
 {
-    fn page_count(&self) -> usize {
-        self.content.page_count()
+    fn pager(&self) -> Pager {
+        self.content.pager()
     }
 
-    fn change_page(&mut self, active_page: usize) {
+    fn change_page(&mut self, active_page: u16) {
         self.content.change_page(active_page);
     }
 }
 
+// TODO: what about this trait?
 pub trait ScrollableContent {
     fn page_count(&self) -> usize;
     fn active_page(&self) -> usize;
@@ -186,7 +188,7 @@ where
         let msg = self.content.event(ctx, event);
         let content_active_page = self.content.inner().active_page();
         if self.scrollbar.active_page != content_active_page {
-            self.scrollbar.change_page(content_active_page);
+            self.scrollbar.change_page(content_active_page as u16);
             self.scrollbar.request_complete_repaint(ctx);
         }
         self.title.event(ctx, event);

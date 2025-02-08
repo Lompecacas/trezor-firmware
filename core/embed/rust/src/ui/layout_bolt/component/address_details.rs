@@ -7,10 +7,11 @@ use crate::{
     ui::{
         component::{
             text::paragraphs::{Paragraph, ParagraphSource, ParagraphVecShort, Paragraphs, VecExt},
-            Component, Event, EventCtx, Paginate, Qr,
+            Component, Event, EventCtx, PaginateFull, Qr,
         },
         geometry::Rect,
         shape::Renderer,
+        util::Pager,
     },
 };
 
@@ -100,8 +101,8 @@ impl AddressDetails {
         self.xpub_view.update_title(&mut dummy_ctx, self.xpubs[i].0);
         self.xpub_view.update_content(&mut dummy_ctx, |p| {
             p.update(self.xpubs[i].1);
-            p.change_page(page);
-            p.page_count()
+            p.change_page(page as u16);
+            p.pager().total() as usize
         })
     }
 
@@ -121,18 +122,22 @@ impl AddressDetails {
         }
         (xpub_index, xpub_page)
     }
+
+    fn total_pages(&self) -> u16 {
+        // Base pages (QR and details) plus sum of all xpub pages
+        2 + self.xpub_page_count.iter().map(|&x| x as u16).sum::<u16>()
+    }
 }
 
-impl Paginate for AddressDetails {
-    fn page_count(&self) -> usize {
-        let total_xpub_pages: u8 = self.xpub_page_count.iter().copied().sum();
-        2usize.saturating_add(total_xpub_pages.into())
+impl PaginateFull for AddressDetails {
+    fn pager(&self) -> Pager {
+        Pager::new(self.total_pages())
     }
 
-    fn change_page(&mut self, to_page: usize) {
-        self.current_page = to_page;
+    fn change_page(&mut self, to_page: u16) {
+        self.current_page = to_page as usize;
         if to_page > 1 {
-            let i = to_page - 2;
+            let i = to_page as usize - 2;
             let (xpub_index, xpub_page) = self.lookup(i);
             self.switch_xpub(xpub_index, xpub_page);
         }

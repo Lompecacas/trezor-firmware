@@ -11,7 +11,7 @@ use crate::{
     ui::{
         component::{
             base::Component,
-            paginated::{PageMsg, Paginate},
+            paginated::{PageMsg, PaginateFull},
             text::paragraphs::{ParagraphSource, Paragraphs},
             Never, Timeout,
         },
@@ -55,7 +55,7 @@ where
 
 impl<T> ComponentMsgObj for ButtonPage<T>
 where
-    T: Component + Paginate,
+    T: Component + PaginateFull,
 {
     fn msg_try_into_obj(&self, msg: Self::Msg) -> Result<Obj, Error> {
         match msg {

@@ -1,5 +1,5 @@
 use crate::ui::{
-    component::{base::ComponentExt, Component, Event, EventCtx, Pad, PageMsg, Paginate},
+    component::{base::ComponentExt, Component, Event, EventCtx, Pad, PageMsg, PaginateFull},
     display::{self, Color},
     geometry::{Axis, Insets, Rect},
     shape::Renderer,
@@ -23,7 +23,7 @@ pub struct SimplePage<T> {
 
 impl<T> SimplePage<T>
 where
-    T: Paginate,
+    T: PaginateFull,
     T: Component,
 {
     pub fn new(content: T, axis: Axis, background: Color) -> Self {
@@ -75,7 +75,7 @@ where
 
         // Change the page in the content, make sure it gets completely repainted and
         // clear the background under it.
-        self.content.change_page(self.scrollbar.active_page);
+        self.content.change_page(self.scrollbar.active_page as u16);
         self.content.request_complete_repaint(ctx);
         self.pad.clear();
 
@@ -92,7 +92,7 @@ where
 
 impl<T> Component for SimplePage<T>
 where
-    T: Paginate,
+    T: PaginateFull,
     T: Component,
 {
     type Msg = PageMsg<T::Msg>;
@@ -107,7 +107,7 @@ where
         };
 
         self.content.place(bounds);
-        if self.content.page_count() > 1 {
+        if self.content.pager().total() > 1 {
             self.pad.place(content);
             self.content.place(content);
         } else {
@@ -123,7 +123,7 @@ where
         }
 
         self.scrollbar
-            .set_count_and_active_page(self.content.page_count(), 0);
+            .set_count_and_active_page(self.content.pager().total() as usize, 0);
         self.setup_swipe();
 
         bounds
