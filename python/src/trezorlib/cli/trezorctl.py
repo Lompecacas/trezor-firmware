@@ -195,13 +195,6 @@ def configure_logging(verbose: int) -> None:
     "--record",
     help="Record screen changes into a specified directory.",
 )
-@click.option(
-    "-n",
-    "--no-store",
-    is_flag=True,
-    help="Do not store channels data between commands.",
-    default=False,
-)
 @click.version_option(version=__version__)
 @click.pass_context
 def cli_main(
@@ -213,9 +206,9 @@ def cli_main(
     script: bool,
     session_id: Optional[str],
     record: Optional[str],
-    no_store: bool,
 ) -> None:
     configure_logging(verbose)
+
     bytes_session_id: Optional[bytes] = None
     if session_id is not None:
         try:
@@ -339,9 +332,8 @@ def ping(session: "Session", message: str, button_protection: bool) -> str:
 
 @cli.command()
 @click.pass_obj
-def get_session(
-    obj: TrezorConnection, passphrase: str = "", derive_cardano: bool = False
-) -> str:
+@click.option("-c", "derive_cardano", is_flag=True, help="Derive Cardano session.")
+def get_session(obj: TrezorConnection, derive_cardano: bool = False) -> str:
     """Get a session ID for subsequent commands.
 
     Unlocks Trezor with a passphrase and returns a session ID. Use this session ID with
@@ -360,10 +352,7 @@ def get_session(
                 "Upgrade your firmware to enable session support."
             )
 
-        # client.ensure_unlocked()
-        session = client.get_session(
-            passphrase=passphrase, derive_cardano=derive_cardano
-        )
+        session = obj.get_session(derive_cardano=derive_cardano)
         if session.id is None:
             raise click.ClickException("Passphrase not enabled or firmware too old.")
         else:

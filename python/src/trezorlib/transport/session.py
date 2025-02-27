@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from binascii import hexlify
 import logging
 import typing as t
 
@@ -123,10 +124,10 @@ class SessionV1(Session):
         assert isinstance(client.protocol, ProtocolV1Channel)
         session = SessionV1(client, id=session_id or b"")
 
-        session._init_callbacks()
-        session.passphrase = passphrase
+        session.passphrase = passphrase  # TODO Do we want this?
         session.derive_cardano = derive_cardano
-        session.init_session(session.derive_cardano)
+        session._init_callbacks()
+        session.init_session(session.derive_cardano, passphrase=passphrase)
         return session
 
     @classmethod
@@ -153,7 +154,9 @@ class SessionV1(Session):
             assert isinstance(self.client.protocol, ProtocolV1Channel)
         return self.client.protocol.read()
 
-    def init_session(self, derive_cardano: bool | None = None):
+    def init_session(
+        self, derive_cardano: bool | None = None, passphrase: str | None = None
+    ):
         if self.id == b"":
             session_id = None
         else:
@@ -161,9 +164,20 @@ class SessionV1(Session):
         resp: messages.Features = self.call_raw(
             messages.Initialize(session_id=session_id, derive_cardano=derive_cardano)
         )
-        if isinstance(self.passphrase, str):
+        if isinstance(passphrase, str):
             self.passphrase_callback = self.client.passphrase_callback
+            if self.passphrase_callback is None:
+                self.passphrase_callback = self._get_callback_passphrase_v1(passphrase)
         self._id = resp.session_id
+
+    def _get_callback_passphrase_v1(
+        self, passphrase: str = ""
+    ) -> t.Callable[[Session, t.Any], t.Any] | None:
+
+        def _callback_passphrase_v1(session: Session, msg: t.Any) -> t.Any:
+            return session.call(messages.PassphraseAck(passphrase=passphrase))
+
+        return _callback_passphrase_v1
 
 
 def _callback_button(session: Session, msg: t.Any) -> t.Any:
