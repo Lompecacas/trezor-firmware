@@ -23,6 +23,7 @@ reads the message's header. When the message type is known the first handler is 
 
 """
 
+from micropython import const
 from typing import TYPE_CHECKING
 
 from trezor import log, loop, protobuf, utils
@@ -52,9 +53,9 @@ if TYPE_CHECKING:
     LoadedMessageType = TypeVar("LoadedMessageType", bound=protobuf.MessageType)
 
 
-def setup(iface: WireInterface, buffer: bytearray) -> None:
+def setup(iface: WireInterface) -> None:
     """Initialize the wire stack on the provided WireInterface."""
-    loop.schedule(handle_session(iface, buffer))
+    loop.schedule(handle_session(iface))
 
 
 if utils.USE_THP:

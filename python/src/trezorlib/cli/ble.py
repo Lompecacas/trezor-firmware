@@ -23,10 +23,10 @@ import click
 
 from .. import ble, exceptions
 from ..transport.ble import BleProxy
-from . import with_client
+from . import with_session
 
 if TYPE_CHECKING:
-    from ..client import TrezorClient
+    from ..transport.session import Session
 
 
 @click.group(name="ble")
@@ -38,9 +38,9 @@ def cli() -> None:
 # fmt: off
 @click.argument("package", type=click.File("rb"))
 # fmt: on
-@with_client
+@with_session
 def update(
-    client: "TrezorClient",
+    session: "Session",
     package: BinaryIO,
 ) -> None:
     """Upload new BLE firmware to device."""
@@ -60,7 +60,7 @@ def update(
                 with click.progressbar(
                     label="Uploading", length=len(binfile), show_eta=False
                 ) as bar:
-                    ble.update(client, datfile, binfile, bar.update)
+                    ble.update(session, datfile, binfile, bar.update)
                     click.echo("Update successful.")
             except exceptions.Cancelled:
                 click.echo("Update aborted on device.")
@@ -94,11 +94,10 @@ def connect() -> None:
     click.echo("Connected")
 
 
-@with_client
-def disconnect_device(client: "TrezorClient") -> None:
+def disconnect_device(session: "Session") -> None:
     """Disconnect from device side."""
     try:
-        ble.disconnect(client)
+        ble.disconnect(session)
     except exceptions.Cancelled:
         click.echo("Disconnect aborted on device.")
     except exceptions.TrezorException as e:
@@ -108,10 +107,11 @@ def disconnect_device(client: "TrezorClient") -> None:
 
 @cli.command()
 @click.option("--device", is_flag=True, help="Disconnect from device side.")
-def disconnect(device: bool) -> None:
+@with_session
+def disconnect(session: "Session", device: bool) -> None:
 
     if device:
-        disconnect_device()
+        disconnect_device(session)
     else:
         ble_proxy = BleProxy()
         devices = [d for d in ble_proxy.lookup() if d.connected]
@@ -123,14 +123,14 @@ def disconnect(device: bool) -> None:
 
 
 @cli.command()
-@with_client
+@with_session
 def erase_bonds(
-    client: "TrezorClient",
+    session: "Session",
 ) -> None:
     """Erase BLE bonds on device."""
 
     try:
-        ble.erase_bonds(client)
+        ble.erase_bonds(session)
         click.echo("Erase successful.")
     except exceptions.Cancelled:
         click.echo("Erase aborted on device.")
@@ -140,14 +140,14 @@ def erase_bonds(
 
 
 @cli.command()
-@with_client
+@with_session
 def unpair(
-    client: "TrezorClient",
+    session: "Session",
 ) -> None:
     """Erase bond of currently connected device. (on device side)"""
 
     try:
-        ble.unpair(client)
+        ble.unpair(session)
         click.echo("Unpair successful.")
     except exceptions.Cancelled:
         click.echo("Unapair aborted on device.")

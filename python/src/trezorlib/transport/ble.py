@@ -20,8 +20,7 @@ from multiprocessing import Pipe, Process
 from multiprocessing.connection import Connection
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional
 
-from . import TransportException
-from .protocol import ProtocolBasedTransport, ProtocolV1
+from . import Transport, TransportException
 
 if TYPE_CHECKING:
     from ..models import TrezorModel
@@ -40,15 +39,16 @@ class Device:
     connected: bool
 
 
-class BleTransport(ProtocolBasedTransport):
-    ENABLED = True
+class BleTransport(Transport):
     PATH_PREFIX = "ble"
+    ENABLED = True
+    CHUNK_SIZE = 244
 
     _ble = None
 
     def __init__(self, mac_addr: str) -> None:
         self.device = mac_addr
-        super().__init__(protocol=ProtocolV1(self, replen=244))
+        super().__init__()
 
     def get_path(self) -> str:
         return "{}:{}".format(self.PATH_PREFIX, self.device)

@@ -92,6 +92,7 @@ class Transport:
 
 
 def all_transports() -> t.Iterable[t.Type["Transport"]]:
+    from .ble import BleTransport
     from .bridge import BridgeTransport
     from .hid import HidTransport
     from .udp import UdpTransport

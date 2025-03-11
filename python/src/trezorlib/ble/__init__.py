@@ -1,45 +1,43 @@
 import typing as t
 
 from .. import messages
-from ..tools import session
 
 if t.TYPE_CHECKING:
-    from ..client import TrezorClient
+    from ..transport.session import Session
 
 
-@session
 def update(
-    client: "TrezorClient",
+    session: "Session",
     datfile: bytes,
     binfile: bytes,
     progress_update: t.Callable[[int], t.Any] = lambda _: None,
 ):
-    chunk_len = 4096
-    offset = 0
+    raise NotImplementedError()
+    # chunk_len = 4096
+    # offset = 0
 
-    resp = client.call(
-        messages.UploadBLEFirmwareInit(init_data=datfile, binsize=len(binfile))
-    )
+    # resp = session.call(
+    #     messages.UploadBLEFirmwareInit(init_data=datfile, binsize=len(binfile))
+    # )
 
-    while isinstance(resp, messages.UploadBLEFirmwareNextChunk):
+    # while isinstance(resp, messages.UploadBLEFirmwareNextChunk):
 
-        payload = binfile[offset : offset + chunk_len]
-        resp = client.call(messages.UploadBLEFirmwareChunk(data=payload))
-        progress_update(chunk_len)
-        offset += chunk_len
+    #     payload = binfile[offset : offset + chunk_len]
+    #     resp = session.call(messages.UploadBLEFirmwareChunk(data=payload))
+    #     progress_update(chunk_len)
+    #     offset += chunk_len
 
-    if isinstance(resp, messages.Success):
-        return
-    else:
-        raise RuntimeError(f"Unexpected message {resp}")
+    # if isinstance(resp, messages.Success):
+    #     return
+    # else:
+    #     raise RuntimeError(f"Unexpected message {resp}")
 
 
-@session
 def erase_bonds(
-    client: "TrezorClient",
+    session: "Session",
 ):
 
-    resp = client.call(messages.EraseBonds())
+    resp = session.call(messages.EraseBonds())
 
     if isinstance(resp, messages.Success):
         return
@@ -47,12 +45,11 @@ def erase_bonds(
         raise RuntimeError(f"Unexpected message {resp}")
 
 
-@session
 def unpair(
-    client: "TrezorClient",
+    session: "Session",
 ):
 
-    resp = client.call(messages.Unpair())
+    resp = session.call(messages.Unpair())
 
     if isinstance(resp, messages.Success):
         return
@@ -60,11 +57,10 @@ def unpair(
         raise RuntimeError(f"Unexpected message {resp}")
 
 
-@session
 def disconnect(
-    client: "TrezorClient",
+    session: "Session",
 ):
-    resp = client.call(messages.Disconnect())
+    resp = session.call(messages.Disconnect())
 
     if isinstance(resp, messages.Success):
         return

@@ -29,14 +29,14 @@ workflow.start_default()
 
 
 # initialize the wire codec
-wire.setup(usb.iface_wire, WIRE_BUFFER)
+wire.setup(usb.iface_wire)
 
 if utils.USE_BLE:
     import bluetooth
 
     BLE_BUFFER = bytearray(_PROTOBUF_BUFFER_SIZE)
 
-    wire.setup(bluetooth.iface_ble, BLE_BUFFER)
+    wire.setup(bluetooth.iface_ble)
 
 
 # start the event loop
