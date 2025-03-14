@@ -78,6 +78,8 @@ class Channel:
 
         # Objects for writing a message to a wire
         self.transmission_loop: TransmissionLoop | None = None
+        print("RESETTING TRANSMISSION LOOP", self.transmission_loop)
+        print("CHANNEL MEM_ADDRESS:", self)
         self.write_task_spawn: loop.spawn | None = None
 
         # Temporary objects
@@ -140,7 +142,12 @@ class Channel:
             self._log("receive packet")
 
         self._handle_received_packet(packet)
-
+        print(
+            "RECEIVE PACKET - DOES TRANSMISSION LOOP EXIST?",
+            self.transmission_loop is not None,
+            self.transmission_loop,
+        )
+        print(self)
         try:
             buffer = memory_manager.get_existing_read_buffer(self.get_channel_id_int())
         except WireBufferError:
@@ -489,11 +496,16 @@ class Channel:
         sync_bit = ABP.get_send_seq_bit(self.channel_cache)
         ctrl_byte = control_byte.add_seq_bit_to_ctrl_byte(ctrl_byte, sync_bit)
         header = PacketHeader(ctrl_byte, self.get_channel_id_int(), payload_len)
+        print("CREATING TRANSMISSION LOOP")
         self.transmission_loop = TransmissionLoop(self, header, payload)
+        print("\n\n>>> TRANSSMISSION LOOP START -before", self.transmission_loop)
+        print("CHANNEL:", self)
+        print("SELF.WRITE_TASK_SPAWN", self.write_task_spawn is not None)
+        print("SELF.RETRANSMISSION_LOOP", self.transmission_loop is not None)
         await self.transmission_loop.start()
-
+        print("\n\n>>> TRANSSMISSION LOOP START -after", self.transmission_loop)
         ABP.set_send_seq_bit_to_opposite(self.channel_cache)
-
+        print("\n\n>>>>> Set seq bit to opposite", self.transmission_loop)
         # Let the main loop be restarted and clear loop, if there is no other
         # workflow and the state is ENCRYPTED_TRANSPORT
         if self._can_clear_loop():

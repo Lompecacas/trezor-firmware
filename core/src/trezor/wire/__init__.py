@@ -55,6 +55,7 @@ if TYPE_CHECKING:
 
 def setup(iface: WireInterface) -> None:
     """Initialize the wire stack on the provided WireInterface."""
+    print(f"SETUP - handle_session on iface {iface}")
     loop.schedule(handle_session(iface))
 
 
@@ -80,8 +81,8 @@ if utils.USE_THP:
                 # Unload modules imported by the workflow. Should not raise.
                 if __debug__:
                     log.debug(__name__, "utils.unimport_end(modules) and loop.clear()")
-                utils.unimport_end(modules)
-                loop.clear()
+                # utils.unimport_end(modules)
+                # loop.clear()
                 return  # pylint: disable=lost-exception
 
 else:
