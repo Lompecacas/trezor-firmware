@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
-import usb
 import bluetooth
+import usb
 
 _WIRE_INTERFACE_USB = b"\x01"
 _WIRE_INTERFACE_BLE = b"\x02"

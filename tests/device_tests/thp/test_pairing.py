@@ -33,10 +33,10 @@ from trezorlib.transport.thp import curve25519
 from trezorlib.transport.thp.cpace import Cpace
 
 from .connect import (
-    prepare_protocol_for_handshake,
-    prepare_protocol_for_pairing,
     get_encrypted_transport_protocol,
     handle_pairing_request,
+    prepare_protocol_for_handshake,
+    prepare_protocol_for_pairing,
 )
 
 if t.TYPE_CHECKING:

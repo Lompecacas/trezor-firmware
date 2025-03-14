@@ -1,12 +1,11 @@
 import os
+
 import pytest
 
 from trezorlib.client import ProtocolV2Channel
 from trezorlib.debuglink import TrezorClientDebugLink as Client
 
-
 from .connect import prepare_protocol_for_handshake
-
 
 pytestmark = [pytest.mark.protocol("protocol_v2")]
 

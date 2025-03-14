@@ -1,8 +1,9 @@
 import os
 import time
-import pytest
-from trezorlib.client import ProtocolV2Channel
 
+import pytest
+
+from trezorlib.client import ProtocolV2Channel
 from trezorlib.debuglink import TrezorClientDebugLink as Client
 
 pytestmark = [pytest.mark.protocol("protocol_v2")]
