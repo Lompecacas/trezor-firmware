@@ -18,17 +18,12 @@ typedef enum {
 } ble_mode_t;
 
 typedef struct {
-  ble_mode_t mode_requested;
   ble_mode_t mode_current;
   bool connected;
-  uint8_t peer_count;
   bool initialized;
   bool accept_msgs;
   bool pairing_requested;
-
   ble_adv_start_cmd_data_t adv_cmd;
-  uint8_t mac[6];
-  bool mac_ready;
 
   uint16_t data_port;
   int data_sock;
@@ -109,45 +104,52 @@ bool ble_issue_command(ble_command_t *command) {
     return false;
   }
 
-  bool result = false;
-
   switch (command->cmd_type) {
     case BLE_SWITCH_OFF:
-      drv->mode_requested = BLE_MODE_OFF;
-      result = true;
+      drv->mode_current = BLE_MODE_OFF;
+      drv->connected = false;
       break;
     case BLE_SWITCH_ON:
       memcpy(&drv->adv_cmd, &command->data.adv_start, sizeof(drv->adv_cmd));
-      drv->mode_requested = BLE_MODE_CONNECTABLE;
-      result = true;
+      drv->mode_current = BLE_MODE_CONNECTABLE;
       break;
     case BLE_PAIRING_MODE:
       memcpy(&drv->adv_cmd, &command->data.adv_start, sizeof(drv->adv_cmd));
-      drv->mode_requested = BLE_MODE_PAIRING;
-      result = true;
+      drv->mode_current = BLE_MODE_PAIRING;
       break;
     case BLE_DISCONNECT:
-      // result = ble_send_disconnect(drv);
+      drv->connected = false;
       break;
     case BLE_ERASE_BONDS:
-      // result = ble_send_erase_bonds(drv);
       break;
     case BLE_ALLOW_PAIRING:
-      // result = ble_send_pairing_accept(drv);
+      drv->pairing_requested = false;
+      drv->connected = true;
       break;
     case BLE_REJECT_PAIRING:
-      // result = ble_send_pairing_reject(drv);
+      drv->pairing_requested = false;
       break;
     default:
+      printf("unix/ble: unknown command type\n");
       break;
   }
 
-  return result;
+  ssize_t r = -2;
+  if (drv->event_slen > 0) {
+    r = sendto(drv->event_sock, command, sizeof(*command), MSG_DONTWAIT,
+               (const struct sockaddr *)&(drv->event_si_other),
+               drv->event_slen);
+  }
+  if (r != sizeof(*command)) {
+    printf("unix/ble: failed to write command: %d\n", (int)r);
+  }
+
+  return true;
 }
 
 bool ble_get_event(ble_event_t *event) {
   ble_driver_t *drv = &g_ble_driver;
-  if (!drv->initialized /* || !drv->accept_msgs */) {
+  if (!drv->initialized) {
     return false;
   }
   struct sockaddr_in si;
@@ -157,22 +159,63 @@ bool ble_get_event(ble_event_t *event) {
                        (struct sockaddr *)&si, &sl);
   if (r <= 0) {
     return false;
-  } else if (r != sizeof(ble_event_t)) {
-    // TODO log error
+  } else if (r > sizeof(ble_event_t)) {
+    printf("unix/ble: event packet too long\n");
     return false;
   }
 
   drv->event_si_other = si;
   drv->event_slen = sl;
+
+  switch (((ble_event_t *)buf)->type) {
+    case BLE_CONNECTED:
+      drv->connected = true;
+      break;
+    case BLE_DISCONNECTED:
+      drv->connected = false;
+      break;
+    case BLE_PAIRING_REQUEST:
+      drv->pairing_requested = true;
+      break;
+    case BLE_PAIRING_CANCELLED:
+      drv->pairing_requested = false;
+      break;
+    case BLE_EMULATOR_PING:
+      static const ble_command_t ping_resp = {.cmd_type = BLE_EMULATOR_PONG};
+      ssize_t r = sendto(
+          drv->event_sock, &ping_resp, sizeof(ping_resp), MSG_DONTWAIT,
+          (const struct sockaddr *)&(drv->event_si_other), drv->event_slen);
+      ensure(sectrue * (r == sizeof(ping_resp)), NULL);
+      return false;
+      break;
+    default:
+      printf("unix/ble: unknown event type\n");
+      break;
+  }
+
   memcpy(event, buf, sizeof(ble_event_t));
   return true;
 }
 
-void ble_get_state(ble_state_t *state) {}
+void ble_get_state(ble_state_t *state) {
+  const ble_driver_t *drv = &g_ble_driver;
+  memset(state, 0, sizeof(ble_state_t));
+
+  if (!drv->initialized) {
+    return;
+  }
+
+  state->connected = drv->connected;
+  state->peer_count = (uint8_t)(drv->connected);
+  state->pairing = drv->mode_current == BLE_MODE_PAIRING;
+  state->connectable = drv->mode_current == BLE_MODE_CONNECTABLE;
+  state->pairing_requested = drv->pairing_requested;
+  state->state_known = true;
+}
 
 bool ble_can_write(void) {
   ble_driver_t *drv = &g_ble_driver;
-  if (!drv->initialized || !drv->connected || !drv->accept_msgs) {
+  if (!drv->initialized /* || !drv->connected || !drv->accept_msgs */) {
     return false;
   }
 
@@ -185,7 +228,7 @@ bool ble_can_write(void) {
 
 bool ble_write(const uint8_t *data, uint16_t len) {
   ble_driver_t *drv = &g_ble_driver;
-  if (!drv->initialized || !drv->connected || !drv->accept_msgs) {
+  if (!drv->initialized /* || !drv->connected || !drv->accept_msgs */) {
     return false;
   }
 
@@ -199,7 +242,7 @@ bool ble_write(const uint8_t *data, uint16_t len) {
 
 bool ble_can_read(void) {
   ble_driver_t *drv = &g_ble_driver;
-  if (!drv->initialized || !drv->connected || !drv->accept_msgs) {
+  if (!drv->initialized /* || !drv->connected || !drv->accept_msgs */) {
     return false;
   }
 
@@ -208,12 +251,11 @@ bool ble_can_read(void) {
   };
   int r = poll(fds, 1, 0);
   return (r > 0);
-  // FIXME emulated USB also handles PINGPING here
 }
 
 uint32_t ble_read(uint8_t *data, uint16_t max_len) {
   ble_driver_t *drv = &g_ble_driver;
-  if (!drv->initialized || !drv->connected || !drv->accept_msgs) {
+  if (!drv->initialized /* || !drv->connected || !drv->accept_msgs */) {
     return 0;
   }
   struct sockaddr_in si;
@@ -233,6 +275,19 @@ uint32_t ble_read(uint8_t *data, uint16_t max_len) {
 }
 
 bool ble_get_mac(uint8_t *mac, size_t max_len) {
-  // TODO
-  return false;
+  ble_driver_t *drv = &g_ble_driver;
+
+  if (max_len < 6) {
+    return false;
+  }
+
+  if (!drv->initialized) {
+    memset(mac, 0, max_len);
+    return false;
+  }
+
+  for (size_t i = 0; i < 6; i++) {
+    mac[i] = i + 1;
+  }
+  return true;
 }
