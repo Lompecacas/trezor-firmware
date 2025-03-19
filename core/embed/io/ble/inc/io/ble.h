@@ -39,6 +39,7 @@ typedef enum {
   BLE_ERASE_BONDS = 4,      // Erase all bonding information
   BLE_ALLOW_PAIRING = 5,    // Accept pairing request
   BLE_REJECT_PAIRING = 6,   // Reject pairing request
+  BLE_UNPAIR = 7,           // Erase bond for currently connected device
   BLE_EMULATOR_PONG = 255,  // Ping reply, emulator only
 } ble_command_type_t;
 
