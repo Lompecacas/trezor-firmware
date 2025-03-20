@@ -68,7 +68,7 @@ if utils.USE_THP:
 
         # Take a mark of modules that are imported at this point, so we can
         # roll back and un-import any others.
-        modules = utils.unimport_begin()
+        # modules = utils.unimport_begin()
 
         while True:
             try:
