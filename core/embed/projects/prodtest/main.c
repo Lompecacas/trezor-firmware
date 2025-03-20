@@ -248,7 +248,11 @@ int main(void) {
   pair_optiga(&g_cli);
 #endif
 
-  cli_run_loop(&g_cli);
+  while (true) {
+    if (usb_vcp_can_read(VCP_IFACE)) {
+      cli_run(&g_cli);
+    }
+  }
 
   return 0;
 }
