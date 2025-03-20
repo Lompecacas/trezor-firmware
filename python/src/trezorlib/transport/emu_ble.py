@@ -27,7 +27,7 @@ from construct_classes import Struct
 
 from ..log import DUMP_PACKETS
 from ..tools import EnumAdapter
-from . import Timeout, Transport, TransportException
+from . import Transport, TransportException
 from .udp import UdpTransport
 
 if TYPE_CHECKING:
@@ -197,7 +197,7 @@ class EmuBleTransport(Transport):
                 break
             except socket.timeout:
                 if timeout is not None and time.time() - start > timeout:
-                    raise Timeout(f"Timeout reading UDP packet ({timeout}s)")
+                    raise Exception(f"Timeout reading UDP packet ({timeout}s)")
         LOG.log(DUMP_PACKETS, f"received packet: {chunk.hex()}")
         if len(chunk) != 64:
             raise TransportException(f"Unexpected chunk size: {len(chunk)}")
@@ -216,7 +216,7 @@ class EmuBleTransport(Transport):
                     break
                 elapsed = time.monotonic() - start
                 if elapsed >= timeout:
-                    raise Timeout("Timed out waiting for connection.")
+                    raise Exception("Timed out waiting for connection.")
 
                 time.sleep(0.05)
         finally:
