@@ -7,10 +7,11 @@ use crate::{
         component::{
             swipe_detect::SwipeConfig, text::TextStyle, Component, Event, EventCtx, Label, Never,
         },
-        display::image::ImageInfo,
+        display::{image::ImageInfo, Color},
         flow::Swipable,
-        geometry::{Insets, Offset, Rect},
+        geometry::{Alignment2D, Grid, Insets, Offset, Point, Rect},
         layout::util::get_user_custom_image,
+        lerp::Lerp,
         shape::{self, Renderer},
         util::{animation_disabled, Pager},
     },
@@ -22,7 +23,7 @@ use super::{
         fonts,
     },
     constant::{HEIGHT, SCREEN, WIDTH},
-    theme::{self, firmware::button_homebar_style, BLACK, GREEN_DARK, GREEN_EXTRA_DARK},
+    theme::{self, firmware::button_homebar_style, BG, BLACK, GREY_EXTRA_DARK, YELLOW},
     ActionBar, ActionBarMsg, Hint, HoldToConfirmAnim,
 };
 
@@ -208,7 +209,7 @@ impl Component for Homescreen {
                 shape::JpegImage::new_image(SCREEN.top_left(), image).render(target);
             }
         } else {
-            render_default_hs(target);
+            render_default_hs(target, Some(YELLOW));
         }
         self.label.render(target);
         self.hint.render(target);
@@ -274,20 +275,95 @@ pub fn check_homescreen_format(image: BinaryData) -> bool {
     }
 }
 
-fn render_default_hs<'a>(target: &mut impl Renderer<'a>) {
+fn render_default_hs<'a>(target: &mut impl Renderer<'a>, led_color: Option<Color>) {
+    const DEFAULT_HS_TILE_ROWS: usize = 3;
+    const DEFAULT_HS_TILE_COLS: usize = 5;
+    const DEFAUL_HS_AREA: Rect = SCREEN.inset(Insets::bottom(theme::ACTION_BAR_HEIGHT));
+    const DEFAUL_HS_GRID: Grid =
+        Grid::new(DEFAUL_HS_AREA, DEFAULT_HS_TILE_ROWS, DEFAULT_HS_TILE_COLS);
+
+    // Layer 1: Base Solid Colour
     shape::Bar::new(SCREEN)
-        .with_fg(theme::BG)
-        .with_bg(theme::BG)
+        .with_bg(GREY_EXTRA_DARK)
         .render(target);
 
-    shape::Circle::new(SCREEN.center(), 48)
-        .with_fg(GREEN_DARK)
-        .with_thickness(4)
-        .render(target);
-    shape::Circle::new(SCREEN.center(), 42)
-        .with_fg(GREEN_EXTRA_DARK)
-        .with_thickness(4)
-        .render(target);
+    // Layer 2: Base Gradient overlay
+    for y in SCREEN.y0..SCREEN.y1 {
+        let slice = Rect::new(Point::new(SCREEN.x0, y), Point::new(SCREEN.x1, y + 1));
+        let factor = (y - SCREEN.y0) as f32 / SCREEN.height() as f32;
+        shape::Bar::new(slice)
+            .with_bg(BG)
+            .with_alpha(u8::lerp(u8::MIN, u8::MAX, factor))
+            .render(target);
+    }
+
+    // Layer 3: (Optional) LED lightning simulation
+    if let Some(color) = led_color {
+        render_led_simulation(color, target);
+    }
+
+    // Layer 4: Tile pattern
+    for row in 0..DEFAULT_HS_TILE_ROWS {
+        for col in 0..DEFAULT_HS_TILE_COLS {
+            let tile_area = DEFAUL_HS_GRID.row_col(row, col);
+            let icon = if [(0, 0), (0, 1), (0, 4), (1, 0), (1, 3), (1, 4)].contains(&(row, col)) {
+                theme::ICON_HS_TILE_2.toif
+            } else {
+                theme::ICON_HS_TILE_1.toif
+            };
+            shape::ToifImage::new(tile_area.top_left(), icon)
+                .with_align(Alignment2D::TOP_LEFT)
+                .with_fg(BLACK)
+                .render(target);
+        }
+    }
+}
+
+fn render_led_simulation<'a>(color: Color, target: &mut impl Renderer<'a>) {
+    const Y_MAX: i16 = SCREEN.y1 - theme::ACTION_BAR_HEIGHT;
+    const Y_RANGE: i16 = Y_MAX - SCREEN.y0;
+
+    const X_MID: i16 = SCREEN.x0 + SCREEN.width() / 2;
+    const X_HALF_WIDTH: f32 = (SCREEN.width() / 2) as f32;
+
+    // Vertical gradient (color intensity fading from bottom to top)
+    for y in SCREEN.y0..Y_MAX {
+        let factor = (y - SCREEN.y0) as f32 / Y_RANGE as f32;
+        let slice = Rect::new(Point::new(SCREEN.x0, y), Point::new(SCREEN.x1, y + 1));
+
+        // Gradient 1 (Overall intensity: 35%)
+        // Stops:     0%,  40%
+        // Opacity: 100%,  20%
+        let factor_grad_1 = (factor / 0.4).clamp(0.2, 1.0);
+        shape::Bar::new(slice)
+            .with_bg(color)
+            .with_alpha(u8::lerp(89, u8::MIN, factor_grad_1))
+            .render(target);
+
+        // Gradient 2 (Overall intensity: 70%)
+        // Stops:     2%, 63%
+        // Opacity: 100%,  0%
+        let factor_grad_2 = ((factor - 0.02) / (0.63 - 0.02)).clamp(0.0, 1.0);
+        let alpha = u8::lerp(179, u8::MIN, factor_grad_2);
+        shape::Bar::new(slice)
+            .with_bg(color)
+            .with_alpha(alpha)
+            .render(target);
+    }
+
+    // Horizontal gradient (transparency increasing toward center)
+    for x in SCREEN.x0..SCREEN.x1 {
+        const WIDTH: i16 = SCREEN.width();
+        let slice = Rect::new(Point::new(x, SCREEN.y0), Point::new(x + 1, Y_MAX));
+        // Gradient 3
+        // Calculate distance from center as a normalized factor (0 at center, 1 at
+        // edges)
+        let dist_from_mid = (x - X_MID).abs() as f32 / X_HALF_WIDTH;
+        shape::Bar::new(slice)
+            .with_bg(BG)
+            .with_alpha(u8::lerp(u8::MIN, u8::MAX, dist_from_mid))
+            .render(target);
+    }
 }
 
 fn get_homescreen_image() -> Option<BinaryData<'static>> {
