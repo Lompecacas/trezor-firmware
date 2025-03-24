@@ -36,6 +36,7 @@ from .client import (
     MAX_PASSPHRASE_LENGTH,
     MAX_PIN_LENGTH,
     PASSPHRASE_ON_DEVICE,
+    Channel,
     ProtocolVersion,
     TrezorClient,
 )
@@ -1237,14 +1238,20 @@ class TrezorClientDebugLink(TrezorClient):
         auto_interact: bool = True,
         open_transport: bool = True,
         debug_transport: Transport | None = None,
+        protocol: Channel | None = None,
     ) -> None:
         try:
             debug_transport = debug_transport or transport.find_debug()
             self.debug = DebugLink(debug_transport, auto_interact)
             if open_transport:
                 self.debug.open()
+
             # try to open debuglink, see if it works
-            assert self.debug.transport.ping()
+            was_succ = self.debug.transport.ping()
+            if not was_succ:
+                self.debug = DebugLink(transport.find_debug(), auto_interact)
+                self.debug.open()
+                assert self.debug.transport.ping()
         except Exception:
             if not auto_interact:
                 self.debug = NullDebugLink()
@@ -1255,7 +1262,7 @@ class TrezorClientDebugLink(TrezorClient):
             transport.open()
 
         # set transport explicitly so that sync_responses can work
-        super().__init__(transport)
+        super().__init__(transport=transport, protocol=protocol)
 
         self.transport = transport
         self.ui: DebugUI = DebugUI(self.debug)
