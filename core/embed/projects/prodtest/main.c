@@ -257,7 +257,7 @@ int main(void) {
 
   while (true) {
     if (usb_vcp_can_read(VCP_IFACE)) {
-      cli_run(&g_cli);
+      cli_process_io(&g_cli);
     }
 
 #if defined USE_BUTTON && defined USE_POWERCTL

@@ -557,7 +557,7 @@ static void cli_process_command(cli_t* cli, const cli_command_t* cmd) {
   }
 }
 
-void cli_run(cli_t* cli) {
+void cli_process_io(cli_t* cli) {
   int res;
   do {
     int ch = cli_readch(cli);
