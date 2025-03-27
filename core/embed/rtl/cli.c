@@ -345,18 +345,18 @@ static int cli_process_char(cli_t* cli) {
     case ESC_SEQ('A'):  // ESC[A
       // Up arrow - search history backwards
       if (cli->hist_idx == 0) {
-        cli->hist_prefix = cli->len;
+        cli->hist_prefix = cli->line_len;
       }
       const char* hist_line =
           cli_history_rev(cli, &cli->hist_idx, buf, cli->hist_prefix);
       if (hist_line != NULL) {
-        if (cli->cursor > 0) {
+        if (cli->line_cursor > 0) {
           // Move the cursor to the beginning of the line
-          cli_printf(cli, "\e[%dD", cli->cursor);
+          cli_printf(cli, "\e[%dD", cli->line_cursor);
         }
         // Replace original text
         strcpy(buf, hist_line);
-        cli->len = cli->cursor = strlen(buf);
+        cli->line_len = cli->line_cursor = strlen(buf);
         cli_printf(cli, "%s\e[K", buf);
       }
       return 0;
@@ -367,21 +367,21 @@ static int cli_process_char(cli_t* cli) {
         const char* hist_line =
             cli_history_fwd(cli, &cli->hist_idx, buf, cli->hist_prefix);
         if (hist_line != NULL) {
-          if (cli->cursor > 0) {
+          if (cli->line_cursor > 0) {
             // Move the cursor to the beginning of the line
-            cli_printf(cli, "\e[%dD", cli->cursor);
+            cli_printf(cli, "\e[%dD", cli->line_cursor);
           }
           // Replace original text
           strcpy(buf, hist_line);
-          cli->len = cli->cursor = strlen(buf);
+          cli->line_len = cli->line_cursor = strlen(buf);
           cli_printf(cli, "%s\e[K", buf);
         } else {
-          if (cli->cursor > cli->hist_prefix) {
-            cli_printf(cli, "\e[%dD", cli->cursor - cli->hist_prefix);
+          if (cli->line_cursor > cli->hist_prefix) {
+            cli_printf(cli, "\e[%dD", cli->line_cursor - cli->hist_prefix);
           }
           cli_printf(cli, "\e[K");
-          cli->len = cli->cursor = cli->hist_prefix;
-          buf[cli->len] = '\0';
+          cli->line_len = cli->line_cursor = cli->hist_prefix;
+          buf[cli->line_len] = '\0';
         }
       }
       return 0;
@@ -393,47 +393,47 @@ static int cli_process_char(cli_t* cli) {
   switch (ch) {
     case ESC_SEQ('C'):  // ESC[C
       // Right arrow
-      if (cli->cursor < cli->len) {
+      if (cli->line_cursor < cli->line_len) {
         if (cli->interactive) {
           cli_printf(cli, "\e[C");
         }
-        cli->cursor++;
+        cli->line_cursor++;
       }
       break;
 
     case ESC_SEQ('D'):  // ESC[D
       // Left arrow
-      if (cli->cursor > 0) {
+      if (cli->line_cursor > 0) {
         if (cli->interactive) {
           cli_printf(cli, "\e[D");
         }
-        cli->cursor--;
+        cli->line_cursor--;
       }
       break;
 
     case '\b':
     case 0x7F:
       // backspace => delete last character
-      if (cli->cursor == 0) break;
+      if (cli->line_cursor == 0) break;
       if (cli->interactive) {
         // Move the cursor left
         cli_printf(cli, "\e[D");
       }
-      --cli->cursor;
+      --cli->line_cursor;
       // do not break, fall through
 
     case ESC_SEQ(3):  // ESC[3~
       // Delete
-      if (cli->cursor < cli->len) {
+      if (cli->line_cursor < cli->line_len) {
         // Delete the character at the cursor
-        memmove(&buf[cli->cursor], &buf[cli->cursor + 1],
-                cli->len - cli->cursor);
-        --cli->len;
+        memmove(&buf[cli->line_cursor], &buf[cli->line_cursor + 1],
+                cli->line_len - cli->line_cursor);
+        --cli->line_len;
         if (cli->interactive) {
           // Print the rest of the line and move the cursor back
-          cli_printf(cli, "%s \b", &buf[cli->cursor]);
-          if (cli->cursor < cli->len) {
-            cli_printf(cli, "\e[%dD", cli->len - cli->cursor);
+          cli_printf(cli, "%s \b", &buf[cli->line_cursor]);
+          if (cli->line_cursor < cli->line_len) {
+            cli_printf(cli, "\e[%dD", cli->line_len - cli->line_cursor);
           }
         }
       }
@@ -445,21 +445,21 @@ static int cli_process_char(cli_t* cli) {
       if (cli->interactive) {
         cli_printf(cli, "\r\n");
       }
-      if (cli->len < CLI_LINE_BUFFER_SIZE) {
+      if (cli->line_len < CLI_LINE_BUFFER_SIZE) {
         return 1;
       }
       return -1;
 
     case '\t':
       // tab => autocomplete
-      if (cli->interactive && cli->len == cli->cursor) {
+      if (cli->interactive && cli->line_len == cli->line_cursor) {
         char ch;
         while ((ch = cli_autocomplete(cli, buf)) != '\0') {
-          if (cli->len < CLI_LINE_BUFFER_SIZE - 1) {
+          if (cli->line_len < CLI_LINE_BUFFER_SIZE - 1) {
             cli_printf(cli, "%c", ch);
-            buf[cli->len++] = ch;
-            buf[cli->len] = '\0';
-            cli->cursor++;
+            buf[cli->line_len++] = ch;
+            buf[cli->line_len] = '\0';
+            cli->line_cursor++;
           }
         }
       }
@@ -468,20 +468,20 @@ static int cli_process_char(cli_t* cli) {
     default:
       if (ch >= 0x20 && ch <= 0x7E) {
         // Printable character
-        if (cli->len < CLI_LINE_BUFFER_SIZE - 1) {
+        if (cli->line_len < CLI_LINE_BUFFER_SIZE - 1) {
           // Insert the character at the cursor
-          ++cli->len;
-          memmove(&buf[cli->cursor + 1], &buf[cli->cursor],
-                  cli->len - cli->cursor);
-          buf[cli->cursor] = ch;
+          ++cli->line_len;
+          memmove(&buf[cli->line_cursor + 1], &buf[cli->line_cursor],
+                  cli->line_len - cli->line_cursor);
+          buf[cli->line_cursor] = ch;
           // Print new character and the rest of the line
           if (cli->interactive) {
-            cli_printf(cli, "%s", &buf[cli->cursor]);
+            cli_printf(cli, "%s", &buf[cli->line_cursor]);
           }
-          ++cli->cursor;
-          if (cli->interactive && cli->cursor < cli->len) {
+          ++cli->line_cursor;
+          if (cli->interactive && cli->line_cursor < cli->line_len) {
             // Move the cursor back
-            cli_printf(cli, "\e[%dD", cli->len - cli->cursor);
+            cli_printf(cli, "\e[%dD", cli->line_len - cli->line_cursor);
           }
         }
       }
@@ -490,8 +490,8 @@ static int cli_process_char(cli_t* cli) {
 }
 
 static void cli_clear_line(cli_t* cli) {
-  cli->len = 0;
-  cli->cursor = 0;
+  cli->line_len = 0;
+  cli->line_cursor = 0;
   cli->hist_idx = 0;
   cli->hist_prefix = 0;
   memset(cli->line_buffer, 0, sizeof(cli->line_buffer));

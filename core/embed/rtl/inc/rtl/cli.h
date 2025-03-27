@@ -90,9 +90,13 @@ struct cli {
 
   // Current line buffer
   char line_buffer[CLI_LINE_BUFFER_SIZE];
-  int len;     // number of characters in the buffer (excluding '\0')
-  int cursor;  // cursor position in the buffer
+  // number of characters in the buffer (excluding '\0')
+  int line_len;
+  // cursor position in the buffer
+  int line_cursor;
+  // currently selected history entry
   int hist_idx;
+  // prefix to search in the history
   int hist_prefix;
 
   // Command name (pointer to the line buffer)
