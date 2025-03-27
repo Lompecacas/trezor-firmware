@@ -255,6 +255,10 @@ int main(void) {
   uint32_t btn_deadline = 0;
 #endif
 
+#ifdef USE_RGB_LED
+  uint32_t led_start_deadline = ticks_timeout(1000);
+#endif
+
   while (true) {
     if (usb_vcp_can_read(VCP_IFACE)) {
       cli_process_io(&g_cli);
@@ -271,9 +275,9 @@ int main(void) {
       }
       if (btn_event.button == BTN_POWER &&
           btn_event.event_type == BTN_EVENT_UP) {
-        if (ticks_expired(systick_ms())) {
+        if (ticks_expired(btn_deadline)) {
           powerctl_hibernate();
-          rgb_led_set_color(0xffff00);
+          rgb_led_set_color(RGBLED_YELLOW);
           systick_delay_ms(1000);
           rgb_led_set_color(0);
         }
@@ -281,9 +285,15 @@ int main(void) {
     }
 
     if (button_is_down(BTN_POWER) && ticks_expired(btn_deadline)) {
-      rgb_led_set_color(0xff0000);
+      rgb_led_set_color(RGBLED_RED);
     }
 
+#endif
+
+#ifdef USE_RGB_LED
+    if (ticks_expired(led_start_deadline)) {
+      prodtest_rgbled_clear_start();
+    }
 #endif
   }
 

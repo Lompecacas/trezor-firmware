@@ -21,4 +21,11 @@
 
 #include <trezor_types.h>
 
+#define RGBLED_GREEN 0x00FF00
+#define RGBLED_RED 0xFF0000
+#define RGBLED_BLUE 0x0000FF
+#define RGBLED_YELLOW 0xFFFF00
+
 void prodtest_rgbled_init(void);
+
+void prodtest_rgbled_clear_start(void);
