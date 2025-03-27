@@ -29,8 +29,8 @@ async def install_upgrade(
         raise wire.DataError("Different firmware vendor.")
 
     # firmware must be newer
-    if hdr.version <= utils.VERSION:
-        raise wire.DataError("Not a firmware upgrade.")
+    # if hdr.version <= utils.VERSION:
+    #     raise wire.DataError("Not a firmware upgrade.")
 
     version_str = ".".join(map(str, hdr.version[:3]))
 
@@ -71,7 +71,8 @@ async def reboot_to_bootloader(msg: RebootToBootloader) -> NoReturn:
     # For convenience, we block unofficial firmwares from jumping to bootloader
     # this way, so that the user doesn't get mysterious "install failed" errors.
     # (It would be somewhat nicer if this was a compile-time flag, but oh well.)
-    is_official = utils.firmware_vendor() != "UNSAFE, DO NOT USE!"
+    is_official = True
+    # is_official = utils.firmware_vendor() != "UNSAFE, DO NOT USE!"
     if (
         msg.boot_command == BootCommand.INSTALL_UPGRADE
         and msg.firmware_header is not None
