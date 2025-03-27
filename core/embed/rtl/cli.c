@@ -277,7 +277,11 @@ static int cli_readch(cli_t* cli) {
 
   for (;;) {
     char ch;
-    cli->read(cli->callback_context, &ch, 1);
+    size_t len = cli->read(cli->callback_context, &ch, 1);
+
+    if (len != 1) {
+      return 0;
+    }
 
     if (ch == '\e') {
       // Escape sequence start
@@ -331,15 +335,13 @@ static char cli_autocomplete(cli_t* cli, const char* prefix) {
   return next_char;
 }
 
-// Reads next char and processes it.
+// Processes a received character
 //
 // Returns 1 if the input line is complete,
 // returns 0 if more characters are needed,
 // returns negative value if the input line is too long
-static int cli_process_char(cli_t* cli) {
+static int cli_process_char(cli_t* cli, int ch) {
   char* buf = cli->line_buffer;
-
-  int ch = cli_readch(cli);
 
   switch (ch) {
     case ESC_SEQ('A'):  // ESC[A
@@ -556,16 +558,18 @@ static void cli_process_command(cli_t* cli, const cli_command_t* cmd) {
 }
 
 void cli_run(cli_t* cli) {
-  // Read the next line
-  int res = cli_process_char(cli);
+  int res;
+  do {
+    int ch = cli_readch(cli);
+    if (ch == 0) {
+      return;
+    }
+    res = cli_process_char(cli, ch);
+  } while (res == 0);
 
   if (res < 0) {
     cli_error(cli, CLI_ERROR_FATAL, "Input line too long.");
     goto cleanup;
-  }
-
-  if (res == 0) {
-    return;
   }
 
   cli_history_add(cli, cli->line_buffer);

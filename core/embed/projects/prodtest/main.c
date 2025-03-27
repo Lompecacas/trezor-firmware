@@ -108,7 +108,7 @@ cli_t g_cli = {0};
 #define VCP_IFACE 0
 
 static size_t console_read(void *context, char *buf, size_t size) {
-  return usb_vcp_read_blocking(VCP_IFACE, (uint8_t *)buf, size, -1);
+  return usb_vcp_read(VCP_IFACE, (uint8_t *)buf, size);
 }
 
 static size_t console_write(void *context, const char *buf, size_t size) {
