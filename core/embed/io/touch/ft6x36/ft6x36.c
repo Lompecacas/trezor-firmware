@@ -35,7 +35,7 @@
 
 #include "../touch_fsm.h"
 
-// #define TOUCH_TRACE_REGS
+#define TOUCH_TRACE_REGS (0)
 
 typedef struct {
   // Set if the driver is initialized
@@ -409,7 +409,7 @@ secbool touch_activity(void) {
   return secfalse;
 }
 
-#ifdef TOUCH_TRACE_REGS
+#if TOUCH_TRACE_REGS
 void trace_regs(uint8_t* regs) {
   // Extract gesture ID (FT6X63_GESTURE_xxx)
   uint8_t gesture = regs[FT6X63_REG_GEST_ID];
@@ -486,7 +486,7 @@ uint32_t touch_get_state(void) {
     return 0;
   }
 
-#ifdef TOUCH_TRACE_REGS
+#if TOUCH_TRACE_REGS
   trace_regs(regs);
 #endif
 

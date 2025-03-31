@@ -21,20 +21,27 @@
 
 // This module is a simple finite state machine for touch events.
 //
-// It is designed to be used in a polling loop, where the state of the touch
-// is read periodically. The module keeps track of the state changes and
-// provides a simple interface to get the events that happened since the last
-// call to touch_fsm_get_event().
+// The module is designed to be used with a touch driver that provides a
+// function to read the touch state. The touch state is a bitmask that indicates
+// the state of the touch panel.
 //
-// The benefit of using this module is that it can properly handle situations
-// when the touch panel is not read frequently enough or when some
-// touch events are missed.
+// The module implement `touch_get_event()` function that reads the touch
+// state and returns the events that happened since the last call to
+// `touch_get_event()`. This function can be called from different tasks, and
+// it will keep track of the state changes for each task separately,
+// since each task has its own state machine.
 //
-// The structure is designed to be used in a multi-threaded environment, where
-// each thread has its own state machine. The state machines are stored in an
-// array indexed by the task ID.
+// The module also registers itself as a sysevent source - SYSHANDLE_TOUCH,
+// so it can be polled in the task event loop.
 
-
+// Initializes the touch state machine for all tasks and
+// registers the touch event source.
 bool touch_fsm_init(void);
 
+// Deinitializes the touch state machine and unregisters
+// the touch event source.
 void touch_fsm_deinit(void);
+
+// The function is meant to be implemented in the touch driver code.
+// It reads the touch registers and returns the last touch event.
+uint32_t touch_get_state(void);

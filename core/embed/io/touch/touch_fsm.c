@@ -29,7 +29,7 @@
 #include <sys/sysevent_source.h>
 #include <sys/systask.h>
 
-#define TOUCH_TRACE_EVENT
+#define TOUCH_TRACE_EVENT 0
 
 typedef struct {
   // Time (in ticks) when the tls was last updated
@@ -45,9 +45,8 @@ typedef struct {
   uint16_t last_y;
 } touch_fsm_t;
 
-
 // Touch state machine for each task
-touch_fsm_t tls[SYSTASK_MAX_TASKS];
+static touch_fsm_t g_touch_fsm[SYSTASK_MAX_TASKS];
 
 // Forward declarations
 static const syshandle_vmt_t g_touch_handle_vmt;
@@ -67,7 +66,7 @@ bool touch_fsm_event_ready(touch_fsm_t* fsm, uint32_t touch_state) {
   return fsm->state != touch_state;
 }
 
-#ifdef TOUCH_TRACE_EVENT
+#if TOUCH_TRACE_EVENT
 void trace_event(uint32_t event) {
   char event_type = (event & TOUCH_START)  ? 'D'
                     : (event & TOUCH_MOVE) ? 'M'
@@ -167,13 +166,13 @@ uint32_t touch_fsm_get_event(touch_fsm_t* fsm, uint32_t touch_state) {
 }
 
 uint32_t touch_get_event(void) {
-  touch_fsm_t* fsm = &tls[systask_id(systask_active())];
+  touch_fsm_t* fsm = &g_touch_fsm[systask_id(systask_active())];
 
   uint32_t touch_state = touch_get_state();
 
   uint32_t event = touch_fsm_get_event(fsm, touch_state);
 
-#ifdef TOUCH_TRACE_EVENT
+#if TOUCH_TRACE_EVENT
   trace_event(event);
 #endif
 
@@ -181,7 +180,9 @@ uint32_t touch_get_event(void) {
 }
 
 static void on_task_created(void* context, systask_id_t task_id) {
-  touch_fsm_t* fsm = &tls[task_id];
+  UNUSED(context);
+
+  touch_fsm_t* fsm = &g_touch_fsm[task_id];
   touch_tls_clear(fsm);
 }
 
@@ -199,7 +200,9 @@ static void on_event_poll(void* context, bool read_awaited,
 
 static bool on_check_read_ready(void* context, systask_id_t task_id,
                                 void* param) {
-  touch_fsm_t* fsm = &tls[task_id];
+  UNUSED(context);
+
+  touch_fsm_t* fsm = &g_touch_fsm[task_id];
 
   uint32_t touch_state = *(uint32_t*)param;
 
