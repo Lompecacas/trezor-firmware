@@ -67,7 +67,6 @@
 
 #ifdef USE_RGB_LED
 #include <io/rgb_led.h>
-#include "cmd/prodtest_rgbled.h"
 #endif
 
 #ifdef USE_HASH_PROCESSOR
@@ -178,6 +177,11 @@ static void show_welcome_screen(void) {
   }
 }
 
+// Set if the RGB LED must not be controlled by the main loop
+static bool g_rgbled_control_disabled = false;
+
+void prodtest_disable_rgbled_control(void) { g_rgbled_control_disabled = true; }
+
 static void drivers_init(void) {
 #ifdef USE_POWERCTL
   powerctl_init();
@@ -211,7 +215,6 @@ static void drivers_init(void) {
 #endif
 #ifdef USE_RGB_LED
   rgb_led_init();
-  prodtest_rgbled_init();
 #endif
 #ifdef USE_BLE
   unit_properties_init();
@@ -257,6 +260,7 @@ int main(void) {
 
 #ifdef USE_RGB_LED
   uint32_t led_start_deadline = ticks_timeout(1000);
+  rgb_led_set_color(RGBLED_GREEN);
 #endif
 
   while (true) {
@@ -266,15 +270,10 @@ int main(void) {
 
 #if defined USE_BUTTON && defined USE_POWERCTL
     button_event_t btn_event = {0};
-    bool btn = button_get_event(&btn_event);
-
-    if (btn) {
-      if (btn_event.button == BTN_POWER &&
-          btn_event.event_type == BTN_EVENT_DOWN) {
+    if (button_get_event(&btn_event) && btn_event.button == BTN_POWER) {
+      if (btn_event.event_type == BTN_EVENT_DOWN) {
         btn_deadline = ticks_timeout(1000);
-      }
-      if (btn_event.button == BTN_POWER &&
-          btn_event.event_type == BTN_EVENT_UP) {
+      } else if (btn_event.event_type == BTN_EVENT_UP) {
         if (ticks_expired(btn_deadline)) {
           powerctl_hibernate();
           rgb_led_set_color(RGBLED_YELLOW);
@@ -283,16 +282,14 @@ int main(void) {
         }
       }
     }
-
     if (button_is_down(BTN_POWER) && ticks_expired(btn_deadline)) {
       rgb_led_set_color(RGBLED_RED);
     }
-
 #endif
 
 #ifdef USE_RGB_LED
-    if (ticks_expired(led_start_deadline)) {
-      prodtest_rgbled_clear_start();
+    if (ticks_expired(led_start_deadline) && !g_rgbled_control_disabled) {
+      rgb_led_set_color(0);
     }
 #endif
   }
