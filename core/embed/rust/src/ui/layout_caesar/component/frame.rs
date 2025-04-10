@@ -97,17 +97,11 @@ where
     }
 }
 
-// TODO: what about this trait?
-pub trait ScrollableContent {
-    fn page_count(&self) -> usize;
-    fn active_page(&self) -> usize;
-}
-
 /// Component for holding another component and displaying a title.
 /// Also is allocating space for a scrollbar.
 pub struct ScrollableFrame<T>
 where
-    T: Component + ScrollableContent,
+    T: Component + PaginateFull,
 {
     title: Option<Child<Title>>,
     scrollbar: ScrollBar,
@@ -116,7 +110,7 @@ where
 
 impl<T> ScrollableFrame<T>
 where
-    T: Component + ScrollableContent,
+    T: Component + PaginateFull,
 {
     pub fn new(content: T) -> Self {
         Self {
@@ -138,7 +132,7 @@ where
 
 impl<T> Component for ScrollableFrame<T>
 where
-    T: Component + ScrollableContent,
+    T: Component + PaginateFull,
 {
     type Msg = T::Msg;
 
@@ -147,7 +141,7 @@ where
         let (content_area, scrollbar_area, title_area) = if self.title.is_none() {
             // When the content fits on one page, no need for allocating place for scrollbar
             self.content.place(bounds);
-            let page_count = self.content.inner().page_count();
+            let page_count = self.content.inner().pager().total();
             self.scrollbar.set_page_count(page_count);
             if page_count == 1 {
                 (bounds, Rect::zero(), Rect::zero())
@@ -166,7 +160,7 @@ where
             // When there is only one page, do not allocate anything for scrollbar,
             // which would reduce the space for title
             self.content.place(content_area);
-            let page_count = self.content.inner().page_count();
+            let page_count = self.content.inner().pager().total();
             self.scrollbar.set_page_count(page_count);
             let (title_area, scrollbar_area) = if page_count == 1 {
                 (title_and_scrollbar_area, Rect::zero())
@@ -186,8 +180,8 @@ where
 
     fn event(&mut self, ctx: &mut EventCtx, event: Event) -> Option<Self::Msg> {
         let msg = self.content.event(ctx, event);
-        let content_active_page = self.content.inner().active_page();
-        if self.scrollbar.active_page != content_active_page {
+        let content_active_page = self.content.inner().pager().current();
+        if self.scrollbar.pager().current() != content_active_page {
             self.scrollbar.change_page(content_active_page as u16);
             self.scrollbar.request_complete_repaint(ctx);
         }
@@ -219,7 +213,7 @@ where
 #[cfg(feature = "ui_debug")]
 impl<T> crate::trace::Trace for ScrollableFrame<T>
 where
-    T: crate::trace::Trace + Component + ScrollableContent,
+    T: crate::trace::Trace + Component + PaginateFull,
 {
     fn trace(&self, t: &mut dyn crate::trace::Tracer) {
         t.component("ScrollableFrame");

@@ -3,7 +3,7 @@ use core::convert::TryInto;
 use super::component::{
     AddressDetails, ButtonPage, CancelConfirmMsg, CancelInfoConfirmMsg, CoinJoinProgress,
     ConfirmHomescreen, Flow, Frame, Homescreen, Lockscreen, NumberInput, Page, PassphraseEntry,
-    PinEntry, Progress, ScrollableContent, ScrollableFrame, ShowMore, SimpleChoice, WordlistEntry,
+    PinEntry, Progress, ScrollableFrame, ShowMore, SimpleChoice, WordlistEntry,
 };
 use crate::{
     error::Error,
@@ -166,7 +166,7 @@ where
 
 impl<T> ComponentMsgObj for ScrollableFrame<T>
 where
-    T: ComponentMsgObj + ScrollableContent,
+    T: ComponentMsgObj + PaginateFull,
 {
     fn msg_try_into_obj(&self, msg: Self::Msg) -> Result<Obj, Error> {
         self.inner().msg_try_into_obj(msg)
