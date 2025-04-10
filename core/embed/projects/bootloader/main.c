@@ -59,10 +59,18 @@
 #ifdef USE_TAMPER
 #include <sys/tamper.h>
 #endif
+#ifdef USE_BLE
+#include <io/ble.h>
+#endif
+
+#ifdef USE_BLE
+#include "wire/wire_iface_ble.h"
+#endif
 
 #include "antiglitch.h"
 #include "bootui.h"
 #include "version_check.h"
+#include "wire/wire_iface_usb.h"
 #include "workflow/workflow.h"
 
 #ifdef TREZOR_EMULATOR
@@ -122,6 +130,9 @@ static void drivers_init(secbool *touch_initialized) {
 #ifdef USE_RGB_LED
   rgb_led_init();
 #endif
+#ifdef USE_BLE
+  ble_init();
+#endif
 }
 
 static void drivers_deinit(void) {
@@ -131,6 +142,9 @@ static void drivers_deinit(void) {
 #endif
 #ifdef USE_RGB_LED
   rgb_led_deinit();
+#endif
+#ifdef USE_BLE
+  ble_deinit();
 #endif
 #endif
   display_deinit(DISPLAY_JUMP_BEHAVIOR);
@@ -381,7 +395,7 @@ int bootloader_main(void) {
 
     jump_reset();
     if (header_present == sectrue) {
-      if (auto_upgrade == sectrue) {
+      if (auto_upgrade == sectrue && firmware_present == sectrue) {
         result = workflow_auto_update(&vhdr, hdr);
       } else {
         result = workflow_bootloader(&vhdr, hdr, firmware_present);
@@ -389,6 +403,11 @@ int bootloader_main(void) {
     } else {
       result = workflow_empty_device();
     }
+
+    usb_iface_deinit();
+#ifdef USE_BLE
+    ble_iface_deinit();
+#endif
 
     switch (result) {
       case WF_OK_FIRMWARE_INSTALLED:
