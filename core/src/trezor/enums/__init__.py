@@ -432,6 +432,7 @@ if TYPE_CHECKING:
         SignedIdentity = 54
         GetECDHSessionKey = 61
         ECDHSessionKey = 62
+        PaymentNotification = 52
         DebugLinkDecision = 100
         DebugLinkGetState = 101
         DebugLinkState = 102
