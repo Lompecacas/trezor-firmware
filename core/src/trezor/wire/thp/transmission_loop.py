@@ -53,7 +53,7 @@ class TransmissionLoop:
 
     async def _wait(self, counter: int = 0) -> None:
         timeout_ms = round(10200 - 1010000 / (counter + 100))
-        await loop.sleep(timeout_ms)
+        await loop.sleep(5 * timeout_ms)  # TODO temporarily added 5x coefficient
 
     def __del__(self) -> None:
         self.stop_immediately()
