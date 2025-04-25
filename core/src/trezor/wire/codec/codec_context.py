@@ -2,11 +2,14 @@ from typing import TYPE_CHECKING, Awaitable, Container
 
 from storage import cache_codec
 from storage.cache_common import DataCache, InvalidSessionError
-from trezor import log, protobuf
+from trezor import protobuf
 from trezor.wire.codec import codec_v1
 from trezor.wire.context import UnexpectedMessageException
 from trezor.wire.message_handler import wrap_protobuf_load
 from trezor.wire.protocol_common import Context, Message
+
+if __debug__:
+    from .. import wire_log as log
 
 if TYPE_CHECKING:
     from typing import TypeVar
@@ -45,8 +48,8 @@ class CodecContext(Context):
         if __debug__:
             log.debug(
                 __name__,
-                "%d: expect: %s",
-                self.iface.iface_num(),
+                self.iface,
+                "expect: %s",
                 expected_type.MESSAGE_NAME if expected_type else expected_types,
             )
 
@@ -64,8 +67,8 @@ class CodecContext(Context):
         if __debug__:
             log.debug(
                 __name__,
-                "%d: read: %s",
-                self.iface.iface_num(),
+                self.iface,
+                "read: %s",
                 expected_type.MESSAGE_NAME,
             )
 
@@ -76,8 +79,8 @@ class CodecContext(Context):
         if __debug__:
             log.debug(
                 __name__,
-                "%d: write: %s",
-                self.iface.iface_num(),
+                self.iface,
+                "write: %s",
                 msg.MESSAGE_NAME,
             )
 

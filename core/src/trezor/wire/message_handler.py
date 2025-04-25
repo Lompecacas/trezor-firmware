@@ -4,9 +4,10 @@ from storage.cache_common import InvalidSessionError
 from trezor import log, loop, protobuf, utils, workflow
 from trezor.enums import FailureType
 from trezor.messages import Failure
-from trezor.wire.context import UnexpectedMessageException, with_context
-from trezor.wire.errors import ActionCancelled, DataError, Error, UnexpectedMessage
-from trezor.wire.protocol_common import Context, Message
+
+from .context import UnexpectedMessageException, with_context
+from .errors import ActionCancelled, DataError, Error, UnexpectedMessage
+from .protocol_common import Context, Message
 
 if TYPE_CHECKING:
     from typing import Any, Callable, Container
@@ -15,6 +16,11 @@ if TYPE_CHECKING:
 
     HandlerFinder = Callable[[Any, Any], Handler | None]
     Filter = Callable[[int, Handler], Handler]
+
+if __debug__:
+    from trezor.utils import get_bytes_as_str
+
+    from . import wire_log
 
 # If set to False protobuf messages marked with "experimental_message" option are rejected.
 EXPERIMENTAL_ENABLED = False
@@ -71,19 +77,19 @@ async def handle_single_message(ctx: Context, msg: Message) -> bool:
         except Exception:
             msg_type = f"{msg.type} - unknown message type"
         if utils.USE_THP:
-            cid = int.from_bytes(ctx.channel_id, "big")
-            log.debug(
+            cid = get_bytes_as_str(ctx.channel_id)
+            wire_log.info(
                 __name__,
-                "%d:%d receive: <%s>",
-                ctx.iface.iface_num(),
+                ctx.iface,
+                "(cid: %s) received message: %s",
                 cid,
                 msg_type,
             )
         else:
-            log.debug(
+            wire_log.info(
                 __name__,
-                "%d receive: <%s>",
-                ctx.iface.iface_num(),
+                ctx.iface,
+                "received message: %s",
                 msg_type,
             )
 
@@ -164,11 +170,11 @@ async def handle_single_message(ctx: Context, msg: Message) -> bool:
         # - something canceled the workflow from the outside
         if __debug__ and utils.ALLOW_DEBUG_MESSAGES:
             if isinstance(exc, ActionCancelled):
-                log.debug(__name__, "cancelled: %s", exc.message)
+                wire_log.debug(__name__, ctx.iface, "cancelled: %s", exc.message)
             elif isinstance(exc, loop.TaskClosed):
-                log.debug(__name__, "cancelled: loop task was closed")
+                wire_log.debug(__name__, ctx.iface, "cancelled: loop task was closed")
             else:
-                log.exception(__name__, exc)
+                wire_log.exception(__name__, ctx.iface, exc)
         res_msg = failure(exc)
 
     if res_msg is not None:
