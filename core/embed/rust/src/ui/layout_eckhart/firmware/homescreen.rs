@@ -44,6 +44,33 @@ pub struct Homescreen {
     virtual_locking_button: Button,
     /// Hold to lock animation
     htc_anim: Option<HoldToConfirmAnim>,
+    mode: HomescreenModeCarousel,
+    mode_locked: bool,
+    mode_switch_button: Button,
+    mode_lock_button: Button,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum HomescreenModeCarousel {
+    Normal,
+    Green,
+    GreenGreen,
+    White,
+}
+
+impl HomescreenModeCarousel {
+    fn new() -> Self {
+        HomescreenModeCarousel::Normal
+    }
+
+    fn next(&mut self) {
+        match self {
+            HomescreenModeCarousel::Normal => *self = HomescreenModeCarousel::Green,
+            HomescreenModeCarousel::Green => *self = HomescreenModeCarousel::GreenGreen,
+            HomescreenModeCarousel::GreenGreen => *self = HomescreenModeCarousel::White,
+            HomescreenModeCarousel::White => *self = HomescreenModeCarousel::Normal,
+        }
+    }
 }
 
 pub enum HomescreenMsg {
@@ -126,6 +153,10 @@ impl Homescreen {
             locked,
             virtual_locking_button: Button::empty().with_long_press(lock_duration),
             htc_anim,
+            mode: HomescreenModeCarousel::new(),
+            mode_locked: false,
+            mode_switch_button: Button::empty(),
+            mode_lock_button: Button::empty(),
         })
     }
 
@@ -191,36 +222,80 @@ impl Component for Homescreen {
         // Locking button is placed everywhere except the action bar
         let locking_area = bounds.inset(Insets::bottom(self.action_bar.touch_area().height()));
         self.virtual_locking_button.place(locking_area);
+
+        let mode_next_area = bounds
+            .split_top(theme::HEADER_HEIGHT)
+            .1
+            .split_bottom(theme::ACTION_BAR_HEIGHT)
+            .0
+            .split_right(SCREEN.width() / 2)
+            .1;
+        let mode_lock_area = bounds.split_top(theme::HEADER_HEIGHT).0.split_center(100).1;
+        self.mode_switch_button.place(mode_next_area);
+        self.mode_lock_button.place(mode_lock_area);
         bounds
     }
 
     fn event(&mut self, ctx: &mut EventCtx, event: Event) -> Option<Self::Msg> {
-        if let Some(ActionBarMsg::Confirmed) = self.action_bar.event(ctx, event) {
-            if self.locked {
-                return Some(HomescreenMsg::Dismissed);
-            } else {
-                return Some(HomescreenMsg::Menu);
+        if !self.mode_locked {
+            if let Some(ButtonMsg::Clicked) = self.mode_switch_button.event(ctx, event) {
+                self.mode.next();
             }
         }
-        if self.lockable {
-            Self::event_hold(self, ctx, event).then_some(HomescreenMsg::Dismissed)
-        } else {
-            None
+        if let Some(ButtonMsg::Clicked) = self.mode_lock_button.event(ctx, event) {
+            self.mode_locked = !self.mode_locked;
         }
+        if self.mode == HomescreenModeCarousel::Normal {
+            if let Some(ActionBarMsg::Confirmed) = self.action_bar.event(ctx, event) {
+                if self.locked {
+                    return Some(HomescreenMsg::Dismissed);
+                } else {
+                    return Some(HomescreenMsg::Menu);
+                }
+            }
+            if self.lockable {
+                return Self::event_hold(self, ctx, event).then_some(HomescreenMsg::Dismissed);
+            } else {
+                return None;
+            }
+        }
+        None
     }
 
     fn render<'s>(&'s self, target: &mut impl Renderer<'s>) {
-        if let Some(image) = self.image {
-            if let ImageInfo::Jpeg(_) = ImageInfo::parse(image) {
-                shape::JpegImage::new_image(SCREEN.top_left(), image).render(target);
+        match self.mode {
+            HomescreenModeCarousel::Normal => {
+                if let Some(image) = self.image {
+                    if let ImageInfo::Jpeg(_) = ImageInfo::parse(image) {
+                        shape::JpegImage::new_image(SCREEN.top_left(), image).render(target);
+                    }
+                } else {
+                    render_default_hs(target, self.led_color);
+                }
+                self.label.render(target);
+                self.hint.render(target);
+                self.action_bar.render(target);
+                self.htc_anim.render(target);
             }
-        } else {
-            render_default_hs(target, self.led_color);
+            HomescreenModeCarousel::Green => {
+                shape::Bar::new(SCREEN)
+                    .with_fg(theme::GREEN_LIGHT)
+                    .with_bg(theme::GREEN_LIGHT)
+                    .render(target);
+            }
+            HomescreenModeCarousel::GreenGreen => {
+                shape::Bar::new(SCREEN)
+                    .with_fg(theme::GREEN_GREEN)
+                    .with_bg(theme::GREEN_GREEN)
+                    .render(target);
+            }
+            HomescreenModeCarousel::White => {
+                shape::Bar::new(SCREEN)
+                    .with_fg(theme::WHITE)
+                    .with_bg(theme::WHITE)
+                    .render(target);
+            }
         }
-        self.label.render(target);
-        self.hint.render(target);
-        self.action_bar.render(target);
-        self.htc_anim.render(target);
     }
 }
 

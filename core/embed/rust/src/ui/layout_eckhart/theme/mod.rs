@@ -30,6 +30,7 @@ pub const GREY_DARK: Color = Color::rgb(0x46, 0x48, 0x4A);
 pub const GREY_EXTRA_DARK: Color = Color::rgb(0x16, 0x1F, 0x24);
 pub const GREY_SUPER_DARK: Color = Color::rgb(0x0B, 0x10, 0x12);
 
+pub const GREEN_GREEN: Color = Color::rgb(0x00, 0xff, 0x00);
 pub const GREEN_LIME: Color = Color::rgb(0x9B, 0xE8, 0x87);
 pub const GREEN_LIGHT: Color = Color::rgb(0x0B, 0xA5, 0x67);
 pub const GREEN: Color = Color::rgb(0x08, 0x74, 0x48);
