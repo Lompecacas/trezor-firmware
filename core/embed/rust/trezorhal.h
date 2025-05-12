@@ -24,6 +24,10 @@
 #include <io/button.h>
 #endif
 
+#ifdef USE_POWERCTL
+#include <sys/powerctl.h>
+#endif
+
 #ifdef USE_HAPTIC
 #include <io/haptic.h>
 #endif
