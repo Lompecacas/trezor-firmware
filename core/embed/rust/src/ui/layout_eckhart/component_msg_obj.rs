@@ -1,6 +1,7 @@
 use crate::{
     error::Error,
     micropython::obj::Obj,
+    trezorhal::powerctl,
     ui::{
         component::{
             text::paragraphs::{ParagraphSource, Paragraphs},
@@ -145,6 +146,10 @@ impl ComponentMsgObj for SetBrightnessScreen {
 impl<'a> ComponentMsgObj for DeviceMenuScreen<'a> {
     fn msg_try_into_obj(&self, msg: Self::Msg) -> Result<Obj, Error> {
         match msg {
+            DeviceMenuMsg::Hibernate => {
+                powerctl::powerctl_hibernate();
+                return "Hibernate".try_into();
+            }
             DeviceMenuMsg::BackupFailed => "BackupFailed".try_into(),
             DeviceMenuMsg::DevicePair => "DevicePair".try_into(),
             DeviceMenuMsg::DeviceDisconnect(_) => "DeviceDisconnect".try_into(),

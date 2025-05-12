@@ -415,6 +415,8 @@ fn generate_trezorhal_bindings() {
         .allowlist_type("ble_state_t")
         // touch
         .allowlist_function("touch_get_event")
+        // power ctl
+        .allowlist_function("powerctl_hibernate")
         // button
         .allowlist_type("button_t")
         .allowlist_function("button_get_event")

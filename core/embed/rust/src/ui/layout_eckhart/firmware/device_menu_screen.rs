@@ -45,6 +45,7 @@ enum Action {
 
 #[derive(Copy, Clone)]
 pub enum DeviceMenuMsg {
+    Hibernate,
     // Root menu
     BackupFailed,
 
@@ -299,6 +300,10 @@ impl<'a> DeviceMenuScreen<'a> {
         settings_index: usize,
     ) -> usize {
         let mut items: Vec<MenuItem, SHORT_MENU_ITEMS> = Vec::new();
+        unwrap!(items.push(MenuItem::new(
+            "Hibernate".into(),
+            Some(Action::Return(DeviceMenuMsg::Hibernate)),
+        )));
         if failed_backup {
             unwrap!(items.push(
                 MenuItem::new(
