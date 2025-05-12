@@ -50,6 +50,9 @@ bool powerctl_init(void) {
     goto cleanup;
   }
 
+  npm1300_set_charging_limit(NPM1300_CHARGING_LIMIT_MAX);
+  npm1300_set_charging(true);
+
   // Initialize wireless charging
   if (!stwlc38_init()) {
     goto cleanup;
