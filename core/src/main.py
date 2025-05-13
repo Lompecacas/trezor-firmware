@@ -49,7 +49,7 @@ usb.bus.open(storage.device.get_device_id())
 
 # enable BLE, allow connections
 if utils.USE_BLE:
-    with unimport_manager:
+    with utils.unimport():
         import ble  # noqa: F401
         del ble
 

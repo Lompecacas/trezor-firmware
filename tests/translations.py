@@ -10,6 +10,7 @@ from trezorlib import cosi, device, models
 from trezorlib._internal import translations
 from trezorlib.debuglink import LayoutType
 from trezorlib.debuglink import SessionDebugWrapper as Session
+from trezorlib.debuglink import TrezorClientDebugLink as Client
 
 from . import common
 
@@ -75,7 +76,6 @@ def set_language(session: Session, lang: str, *, force: bool = False):
             device.change_language(session, language_data)  # type: ignore
     _CURRENT_TRANSLATION.LAYOUT = session.client.layout_type
     _CURRENT_TRANSLATION.TR = TRANSLATIONS[lang]
-    _CURRENT_TRANSLATION.LAYOUT = client.layout_type
 
 
 def get_language(client: Client) -> str:
