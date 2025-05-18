@@ -37,7 +37,7 @@ async def wipe_device(msg: WipeDevice) -> NoReturn:
         log.debug(__name__, "Device wipe - start")
 
     # start an empty progress screen so that the screen is not blank while waiting
-    render_empty_loader(config.StorageMessage.PROCESSING_MSG)
+    render_empty_loader(config.StorageMessage.PROCESSING_MSG, danger=True)
 
     # wipe storage
     storage.wipe(clear_cache=False)
