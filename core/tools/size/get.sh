@@ -3,8 +3,8 @@
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 CORE_DIR=$(realpath "${CURR_DIR}/../..")
 
-FIRMWARE_ELF="${CORE_DIR}/build/firmware/firmware.elf"
-MAP_FILE="${CORE_DIR}/build/firmware/firmware.map"
+FIRMWARE_ELF="${CORE_DIR}/build/bootloader/bootloader.elf"
+MAP_FILE="${CORE_DIR}/build/bootloader/bootloader.map"
 
 export BINSIZE_ROOT_DIR="${CORE_DIR}"
-binsize get "${FIRMWARE_ELF}" -m "${MAP_FILE}" -s ".flash" -s ".flash2"  $@
+binsize get "${FIRMWARE_ELF}" -m "${MAP_FILE}" -s ".flash" $@
