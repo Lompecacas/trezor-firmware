@@ -191,6 +191,9 @@ void fsm_sendFailure(FailureType code, const char *text)
       case FailureType_Failure_InvalidSession:
         text = _("Invalid session");
         break;
+      case FailureType_Failure_Busy:
+        text = _("Device is busy");
+        break;
       case FailureType_Failure_ThpUnallocatedSession:
         text = _("Unallocated session");
         break;
@@ -200,14 +203,8 @@ void fsm_sendFailure(FailureType code, const char *text)
       case FailureType_Failure_BufferError:
         text = _("Buffer error");
         break;
-      case FailureType_Failure_DeviceIsBusy:
-        text = _("Device is busy");
-        break;
       case FailureType_Failure_FirmwareError:
         text = _("Firmware error");
-        break;
-      case FailureType_Failure_Busy:
-        text = _("Busy");
         break;
     }
   }
