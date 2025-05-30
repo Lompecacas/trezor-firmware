@@ -44,6 +44,7 @@
 
 optiga_sign_result optiga_sign(uint8_t index, const uint8_t *digest,
                                size_t digest_size, uint8_t *signature,
+                               const uint8_t masking_key[32],
                                size_t max_sig_size, size_t *sig_size) {
   const uint8_t DEVICE_PRIV_KEY[32] = {1};
 

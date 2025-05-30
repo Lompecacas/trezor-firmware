@@ -482,7 +482,7 @@ static void cert_write(cli_t* cli, uint16_t oid) {
   cli_ok(cli, "");
 }
 
-static void pubkey_read(cli_t* cli, uint16_t oid) {
+static void pubkey_read(cli_t* cli, uint16_t oid, uint8_t masking_key[32]) {
   if (cli_arg_count(cli) > 0) {
     cli_error_arg_count(cli);
     return;
@@ -518,7 +518,20 @@ static void pubkey_read(cli_t* cli, uint16_t oid) {
     return;
   }
 
-  cli_ok_hexdata(cli, public_key, public_key_size);
+  if (masking_key != NULL) {
+    if (public_key_size != sizeof(public_key)) {
+      cli_error(cli, CLI_ERROR, "unexpected public key size");
+      return;
+    }
+    uint8_t masked_public_key[33] = {0x02};
+    uint8_t unmasked_pub_key[65] = {0};
+    memcpy(&masked_public_key[1], public_key, sizeof(public_key));
+    int res = ecdsa_unmask_public_key(&nist256p1, masking_key,
+                                      masked_public_key, unmasked_pub_key);
+    cli_ok_hexdata(cli, &unmasked_pub_key[1], 32);
+  } else {
+    cli_ok_hexdata(cli, public_key, public_key_size);
+  }
 }
 
 static void prodtest_optiga_keyfido_write(cli_t* cli) {
@@ -633,6 +646,15 @@ static void prodtest_optiga_keyfido_write(cli_t* cli) {
   metadata.version = OPTIGA_META_VERSION_DEFAULT;
   if (!set_metadata(cli, OID_KEY_FIDO, &metadata, true)) {
     return;
+  }
+
+  uint8_t* masking_key = NULL;
+  if (masking_key != NULL) {
+    if (ecdsa_mask_scalar(&nist256p1, masking_key, fido_key, fido_key) != 0) {
+      memzero(fido_key, sizeof(fido_key));
+      cli_error(cli, CLI_ERROR, "ecdsa_mask_scalar error.");
+      return;
+    }
   }
 
   // Store the FIDO attestation key.
@@ -948,7 +970,7 @@ static void prodtest_optiga_certfido_write(cli_t* cli) {
 }
 
 static void prodtest_optiga_keyfido_read(cli_t* cli) {
-  pubkey_read(cli, OID_KEY_FIDO);
+  pubkey_read(cli, OID_KEY_FIDO, NULL);
 }
 
 // clang-format off

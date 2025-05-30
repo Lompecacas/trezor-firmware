@@ -22,9 +22,11 @@
 #include <sec/optiga.h>
 #include <sec/optiga_commands.h>
 #include <sec/optiga_transport.h>
+#include "ecdsa.h"
 #include "hash_to_curve.h"
 #include "hmac.h"
 #include "memzero.h"
+#include "nist256p1.h"
 #include "rand.h"
 #include "storage.h"
 
@@ -101,10 +103,23 @@ static const optiga_metadata_item ACCESS_PIN_HMAC_CTR =
 #define ENCRYPT_SYM_PREFIX_SIZE 3
 
 optiga_sign_result optiga_sign(uint8_t index, const uint8_t *digest,
-                               size_t digest_size, uint8_t *signature,
-                               size_t max_sig_size, size_t *sig_size) {
+                               size_t digest_size, uint8_t masking_key[32],
+                               uint8_t *signature, size_t max_sig_size,
+                               size_t *sig_size) {
+  optiga_sign_result ret = OPTIGA_SIGN_SUCCESS;
   if (index >= OPTIGA_ECC_KEY_COUNT) {
     return OPTIGA_SIGN_ERROR;
+  }
+
+  uint8_t masked_digest[SHA256_DIGEST_LENGTH] = {0};
+  if (masking_key != NULL) {
+    if (digest_size != SHA256_DIGEST_LENGTH ||
+        ecdsa_mask_scalar(&nist256p1, masking_key, digest, masked_digest) !=
+            0) {
+      ret = OPTIGA_SIGN_ERROR;
+      goto cleanup;
+    }
+    digest = masked_digest;
   }
 
   optiga_result res =
@@ -115,21 +130,41 @@ optiga_sign_result optiga_sign(uint8_t index, const uint8_t *digest,
     if (res == OPTIGA_ERR_CMD &&
         optiga_get_error_code(&error_code) == OPTIGA_SUCCESS &&
         error_code == OPTIGA_ERR_CODE_ACCESS_COND) {
-      return OPTIGA_SIGN_INACCESSIBLE;
+      ret = OPTIGA_SIGN_INACCESSIBLE;
+      goto cleanup;
     } else {
-      return OPTIGA_SIGN_ERROR;
+      ret = OPTIGA_SIGN_ERROR;
+      goto cleanup;
     }
   }
 
   // Add sequence tag and length.
   if (*sig_size >= 0x80) {
     // Length not supported.
-    return OPTIGA_SIGN_ERROR;
+    ret = OPTIGA_SIGN_ERROR;
+    goto cleanup;
   }
   signature[0] = 0x30;
   signature[1] = *sig_size;
   *sig_size += 2;
-  return OPTIGA_SIGN_SUCCESS;
+
+  uint8_t signature_decoded[64] = {0};
+  if (masking_key != NULL) {
+    if (max_sig_size < MAX_DER_SIGNATURE_SIZE ||
+        ecdsa_sig_from_der(signature, sig_size, sig) != 0 ||
+        ecdsa_unmask_scalar(curve, masking_key, &signature_decoded[32],
+                            &signature_decoded[32]) !=) {
+      ret = OPTIGA_SIGN_ERROR;
+      goto cleanup;
+    }
+    sig_size = ecdsa_sig_to_der(signature_decoded, signature);
+  }
+
+  ret = OPTIGA_SIGN_SUCCESS;
+cleanup:
+  memzero(masked_digest, sizeof(masked_digest));
+  memzero(signature_decoded, sizeof(signature_decoded));
+  return ret;
 }
 
 bool optiga_cert_size(uint8_t index, size_t *cert_size) {

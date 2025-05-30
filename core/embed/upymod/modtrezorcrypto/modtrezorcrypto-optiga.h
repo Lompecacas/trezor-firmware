@@ -26,8 +26,6 @@
 
 /// package: trezorcrypto.optiga
 
-#define MAX_DER_SIGNATURE_SIZE 72
-
 /// class OptigaError(Exception):
 ///     """Error returned by the Optiga chip."""
 MP_DEFINE_EXCEPTION(OptigaError, Exception)
@@ -93,8 +91,8 @@ STATIC mp_obj_t mod_trezorcrypto_optiga_sign(mp_obj_t key_index,
   vstr_init_len(&sig, MAX_DER_SIGNATURE_SIZE);
   size_t sig_size = 0;
   optiga_sign_result ret =
-      optiga_sign(idx, (const uint8_t *)dig.buf, dig.len, ((uint8_t *)sig.buf),
-                  sig.alloc, &sig_size);
+      optiga_sign(idx, (const uint8_t *)dig.buf, dig.len, NULL,
+                  ((uint8_t *)sig.buf), sig.alloc, &sig_size);
   if (ret != OPTIGA_SIGN_SUCCESS) {
     vstr_clear(&sig);
     if (ret == OPTIGA_SIGN_INACCESSIBLE) {

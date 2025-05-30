@@ -61,6 +61,9 @@ typedef struct {
 // (4 + 32 + 1 + 4 [checksum]) * 8 / log2(58) plus NUL.
 #define MAX_WIF_SIZE (57)
 
+// Maximum length of a DER-encoded secp256k1 or secp256p1 signature.
+#define MAX_DER_SIGNATURE_SIZE 72
+
 void point_copy(const curve_point *cp1, curve_point *cp2);
 void point_add(const ecdsa_curve *curve, const curve_point *cp1,
                curve_point *cp2);
