@@ -821,7 +821,7 @@
     "solana__is_provided_via_lookup_table_template": "{0} est fourni via une table de corresp.",
     "solana__lookup_table_address": "Adr. de la table de corresp.",
     "solana__max_fees_rent": "Frais et loyer max",
-    "solana__max_rent_fee": "Frais de location max",
+    "solana__max_rent_fee": "Frais de loyer max",
     "solana__multiple_signers": "Plusieurs signataires",
     "solana__priority_fee": "Frais de priorité",
     "solana__stake": "Stake",
