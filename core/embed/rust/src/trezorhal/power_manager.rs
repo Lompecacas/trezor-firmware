@@ -38,3 +38,8 @@ pub fn charging_state() -> ChargingState {
         _ => panic!("Unknown charging status"),
     }
 }
+
+pub fn suspend() {
+    // TODO: handle return codes of `pm_suspend`
+    unsafe { ffi::pm_suspend() };
+}

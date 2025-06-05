@@ -378,26 +378,45 @@ class Layout(Generic[T]):
 
         Override and then `yield from super().create_tasks()` to add more tasks."""
         if utils.USE_BUTTON:
-            yield self._handle_input_iface(io.BUTTON, self.layout.button_event)
+            yield self._handle_button_events()
         if utils.USE_TOUCH:
-            yield self._handle_input_iface(io.TOUCH, self.layout.touch_event)
+            yield self._handle_touch_events()
         if utils.USE_BLE:
             # most layouts don't care but we don't want to keep stale events in the queue
             yield self._handle_ble_events()
         if utils.USE_POWER_MANAGER:
             yield self._handle_power_manager()
 
-    def _handle_input_iface(
-        self, iface: int, event_call: Callable[..., LayoutState | None]
-    ) -> Generator:
-        """Task that is waiting for the user input."""
-        touch = loop.wait(iface)
+    def _handle_button_events(self) -> Generator:
+        """Task that is waiting for the user button input."""
+        button = loop.wait(io.BUTTON)
+        try:
+            while True:
+                # Using `yield` instead of `await` to avoid allocations.
+                event = yield button
+                if utils.USE_POWER_MANAGER:
+                    event_type, event_button = event
+                    if event_button == 2 and event_type == 0:  # POWER_BUTTON, BUTTON_UP
+                        from apps.base import lock_device_if_unlocked
+
+                        lock_device_if_unlocked()
+                        continue
+                workflow.idle_timer.touch()
+                self._event(self.layout.button_event, *event)
+        except Shutdown:
+            return
+        finally:
+            button.close()
+
+    def _handle_touch_events(self) -> Generator:
+        """Task that is waiting for the user touch input."""
+        touch = loop.wait(io.TOUCH)
         try:
             while True:
                 # Using `yield` instead of `await` to avoid allocations.
                 event = yield touch
                 workflow.idle_timer.touch()
-                self._event(event_call, *event)
+                self._event(self.layout.touch_event, *event)
         except Shutdown:
             return
         finally:

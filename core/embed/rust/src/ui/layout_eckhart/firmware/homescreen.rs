@@ -4,6 +4,7 @@ use crate::{
     strutil::TString,
     time::Stopwatch,
     translations::TR,
+    trezorhal::power_manager,
     ui::{
         component::{text::TextStyle, Component, Event, EventCtx, Label, Never},
         display::{image::ImageInfo, Color},
@@ -47,6 +48,8 @@ pub struct Homescreen {
     virtual_locking_button: Button,
     /// Hold to lock animation
     htc_anim: Option<HoldToConfirmAnim>,
+    bootscreen: bool,
+    was_suspended: bool,
 }
 
 pub enum HomescreenMsg {
@@ -129,6 +132,8 @@ impl Homescreen {
             fuel_gauge_stopwatch: Stopwatch::new_stopped(),
             virtual_locking_button: Button::empty().with_long_press(lock_duration),
             htc_anim,
+            bootscreen,
+            was_suspended: false,
         })
     }
 
@@ -198,6 +203,13 @@ impl Component for Homescreen {
     }
 
     fn event(&mut self, ctx: &mut EventCtx, event: Event) -> Option<Self::Msg> {
+        if let Event::Attach(..) = event {
+            if self.locked && !self.was_suspended && !self.bootscreen {
+                self.was_suspended = true;
+                power_manager::suspend();
+            }
+        }
+
         if let Some(ActionBarMsg::Confirmed) = self.action_bar.event(ctx, event) {
             if self.locked {
                 return Some(HomescreenMsg::Dismissed);

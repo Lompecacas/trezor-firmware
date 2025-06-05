@@ -449,6 +449,7 @@ fn generate_trezorhal_bindings() {
         .allowlist_type("pm_event_t")
         .allowlist_function("pm_get_events")
         .allowlist_function("pm_get_state")
+        .allowlist_function("pm_suspend")
         // c_layout
         .allowlist_type("c_layout_t");
 
