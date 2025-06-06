@@ -34,7 +34,7 @@
 #include "../nrf_internal.h"
 #include "rust_smp.h"
 
-#define MAX_SPI_DATA_SIZE (244)
+#define MAX_SPI_DATA_SIZE (251)
 
 typedef struct {
   uint8_t service_id;
