@@ -4,7 +4,7 @@ use crate::{
     strutil::TString,
     time::Stopwatch,
     translations::TR,
-    trezorhal::power_manager,
+    trezorhal::{power_manager, rgb_led},
     ui::{
         component::{text::TextStyle, Component, Event, EventCtx, Label, Never},
         display::{image::ImageInfo, Color},
@@ -70,7 +70,7 @@ impl Homescreen {
         // TODO: better notification handling
         let mut notification_level = 4;
         let mut hint = None;
-        let mut led_color;
+        let led_color;
         if let Some((text, level)) = notification {
             notification_level = level;
             if notification_level == 0 {
@@ -87,12 +87,9 @@ impl Homescreen {
                 Some(theme::ICON_INFO),
             ));
         } else {
-            led_color = Some(theme::GREY_LIGHT);
-        };
-
-        if locked {
+            // led_color = Some(theme::GREY_LIGHT);
             led_color = None;
-        }
+        };
 
         // ActionBar button
         let button_style = button_homebar_style(notification_level);
@@ -108,7 +105,9 @@ impl Homescreen {
             label: HomeLabel::new(label, shadow),
             hint,
             action_bar: ActionBar::new_single(
-                Button::with_homebar_content(text).styled(button_style),
+                Button::with_homebar_content(text)
+                    .styled(button_style)
+                    .with_gradient(),
             ),
             image,
             led_color,
@@ -126,6 +125,13 @@ impl Homescreen {
             return true;
         }
         false
+    }
+}
+
+impl Drop for Homescreen {
+    fn drop(&mut self) {
+        // Turn off the LED when homescreen is destroyed
+        rgb_led::set_color(0);
     }
 }
 
@@ -190,6 +196,11 @@ impl Component for Homescreen {
         self.label.render(target);
         self.hint.render(target);
         self.action_bar.render(target);
+        if let Some(rgb_led) = self.led_color {
+            rgb_led::set_color(rgb_led.to_u32());
+        } else {
+            rgb_led::set_color(0);
+        }
     }
 }
 
