@@ -366,6 +366,12 @@ static void ble_process_data(const uint8_t *data, uint32_t len) {
     return;
   }
 
+  if (data[0] != drv->connected_addr_type ||
+      memcmp(&data[1], drv->connected_addr, sizeof(drv->connected_addr)) != 0) {
+    // inconsistent address of a connected device, ignore the data
+    return;
+  }
+
   tsqueue_enqueue(&drv->rx_queue, data, len, NULL);
 }
 
