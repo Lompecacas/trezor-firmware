@@ -875,12 +875,17 @@ impl FirmwareUI for UIEckhart {
 
     fn select_word_count(recovery_type: RecoveryType) -> Result<impl LayoutMaybeTrace, Error> {
         let description = TR::recovery__num_of_words.into();
+        let title = if matches!(recovery_type, RecoveryType::DryRun) {
+            TR::reset__check_wallet_backup_title
+        } else {
+            TR::recovery__title_recover
+        };
         let content = if matches!(recovery_type, RecoveryType::UnlockRepeatedBackup) {
             SelectWordCountScreen::new_multi_share(description)
         } else {
             SelectWordCountScreen::new_single_share(description)
         }
-        .with_header(Header::new(TR::recovery__title_recover.into()));
+        .with_header(Header::new(title.into()));
         let layout = RootComponent::new(content);
         Ok(layout)
     }
