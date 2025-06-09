@@ -17,7 +17,7 @@ pub enum TranslatedString {
     addr_mismatch__support_url = 3,  // "trezor.io/support"
     addr_mismatch__wrong_derivation_path = 4,  // "Wrong derivation path for selected account."
     addr_mismatch__xpub_mismatch = 5,  // "XPUB mismatch?"
-    address__public_key = 6,  // {"Bolt": "Public key", "Caesar": "Public key", "Delizia": "Public key", "Eckhart": "Public key (XPUB)"}
+    address__public_key = 6,  // "Public key"
     address__title_cosigner = 7,  // "Cosigner"
     address__title_receive_address = 8,  // "Receive address"
     address__title_yours = 9,  // "Yours"
@@ -1446,6 +1446,7 @@ pub enum TranslatedString {
     instructions__shares_start_with_x_template = 1041,  // "Start with Share #{0}"
     reset__check_share_backup_template = 1042,  // "Let's do a quick check of Share #{0}."
     reset__select_word_from_share_template = 1043,  // "Select word #{0} from\nShare #{1}"
+    address__xpub = 1044,  // {"Bolt": "XPUB", "Caesar": "XPUB", "Delizia": "XPUB", "Eckhart": "Public key (XPUB)"}
 }
 
 impl TranslatedString {
@@ -1456,14 +1457,7 @@ impl TranslatedString {
             (Self::addr_mismatch__support_url, "trezor.io/support"),
             (Self::addr_mismatch__wrong_derivation_path, "Wrong derivation path for selected account."),
             (Self::addr_mismatch__xpub_mismatch, "XPUB mismatch?"),
-            #[cfg(feature = "layout_bolt")]
             (Self::address__public_key, "Public key"),
-            #[cfg(feature = "layout_caesar")]
-            (Self::address__public_key, "Public key"),
-            #[cfg(feature = "layout_delizia")]
-            (Self::address__public_key, "Public key"),
-            #[cfg(feature = "layout_eckhart")]
-            (Self::address__public_key, "Public key (XPUB)"),
             (Self::address__title_cosigner, "Cosigner"),
             (Self::address__title_receive_address, "Receive address"),
             (Self::address__title_yours, "Yours"),
@@ -3162,6 +3156,14 @@ impl TranslatedString {
             (Self::instructions__shares_start_with_x_template, "Start with Share #{0}"),
             (Self::reset__check_share_backup_template, "Let's do a quick check of Share #{0}."),
             (Self::reset__select_word_from_share_template, "Select word #{0} from\nShare #{1}"),
+            #[cfg(feature = "layout_bolt")]
+            (Self::address__xpub, "XPUB"),
+            #[cfg(feature = "layout_caesar")]
+            (Self::address__xpub, "XPUB"),
+            #[cfg(feature = "layout_delizia")]
+            (Self::address__xpub, "XPUB"),
+            #[cfg(feature = "layout_eckhart")]
+            (Self::address__xpub, "Public key (XPUB)"),
     ];
 
     #[cfg(feature = "micropython")]
@@ -3182,6 +3184,7 @@ impl TranslatedString {
         (Qstr::MP_QSTR_address__title_cosigner, Self::address__title_cosigner),
         (Qstr::MP_QSTR_address__title_receive_address, Self::address__title_receive_address),
         (Qstr::MP_QSTR_address__title_yours, Self::address__title_yours),
+        (Qstr::MP_QSTR_address__xpub, Self::address__xpub),
         (Qstr::MP_QSTR_address_details__account_info, Self::address_details__account_info),
         (Qstr::MP_QSTR_address_details__derivation_path, Self::address_details__derivation_path),
         (Qstr::MP_QSTR_address_details__derivation_path_colon, Self::address_details__derivation_path_colon),

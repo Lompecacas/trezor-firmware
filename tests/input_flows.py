@@ -763,7 +763,7 @@ class InputFlowShowMultisigXPUBs(InputFlowBase):
 
         yield  # show address
         layout = self.debug.read_layout()
-        assert TR.address__title_receive_address in layout.subtitle()
+        assert TR.words__address in layout.subtitle()
         assert layout.text_content().replace(" ", "").strip() == self.address
 
         self.debug.click(self.debug.screen_buttons.menu())

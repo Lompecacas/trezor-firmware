@@ -136,7 +136,7 @@ async def get_public_key(
         subtitle = f"BTC {subtitle}"
         await show_pubkey(
             show_xpub,
-            TR.address__public_key,
+            TR.address__xpub,
             subtitle=subtitle,
             account=account,
             path=path,

@@ -18,10 +18,11 @@
       "Eckhart": "Cancel receive?"
     },
     "address__confirmed": "Receive address confirmed",
-    "address__public_key": {
-      "Bolt": "Public key",
-      "Caesar": "Public key",
-      "Delizia": "Public key",
+    "address__public_key": "Public key",
+    "address__xpub": {
+      "Bolt": "XPUB",
+      "Caesar": "XPUB",
+      "Delizia": "XPUB",
       "Eckhart": "Public key (XPUB)"
     },
     "address__public_key_confirmed": "Public key confirmed",
@@ -662,7 +663,6 @@
       "Caesar": "PIN will be required to access this device.",
       "Delizia": "PIN will be required to access this device.",
       "Eckhart": "The PIN will be required to access this device."
-
     },
     "pin__invalid_pin": "Invalid PIN",
     "pin__last_attempt": "Last attempt",
