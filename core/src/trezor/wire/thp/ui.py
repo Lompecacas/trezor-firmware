@@ -11,7 +11,9 @@ if __debug__:
 
 
 async def show_autoconnect_credential_confirmation_screen(
-    ctx: Context, host_name: str | None
+    ctx: Context,
+    host_name: str | None,
+    device_name: str | None = None,
 ) -> None:
     from trezor.enums import ButtonRequestType
     from trezor.ui.layouts.common import interact
@@ -19,10 +21,15 @@ async def show_autoconnect_credential_confirmation_screen(
     # TODO FIXME
     _hotfix(ctx)
 
+    if not device_name:
+        action_string = f"Allow {host_name} to connect automatically to this Trezor?"
+    else:
+        action_string = f"Allow {host_name} on {device_name} to connect automatically to this Trezor?"
+
     await interact(
         trezorui_api.confirm_action(
             title="Autoconnect credential",
-            action=f"Do you want to pair with {host_name} without confirmation?",
+            action=action_string,
             description=None,
         ),
         br_name="thp_autoconnect_credential_request",

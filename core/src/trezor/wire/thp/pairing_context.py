@@ -224,8 +224,12 @@ class PairingContext(Context):
                 __name__, self.iface, "Result of connection dialog %s", str(result)
             )
 
-    async def show_autoconnect_credential_confirmation_screen(self) -> None:
-        await ui.show_autoconnect_credential_confirmation_screen(self, self.host_name)
+    async def show_autoconnect_credential_confirmation_screen(
+        self, device_name: str | None = None
+    ) -> None:
+        await ui.show_autoconnect_credential_confirmation_screen(
+            self, self.host_name, device_name
+        )
 
     async def show_pairing_method_screen(
         self, selected_method: ThpPairingMethod | None = None
