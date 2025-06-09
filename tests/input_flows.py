@@ -927,7 +927,7 @@ class InputFlowShowXpubQRCode(InputFlowBase):
             for _ in range(br.pages - 1):
                 self.debug.click(self.debug.screen_buttons.ok())
 
-        assert layout.subtitle() in (TR.address__public_key, "XPUB")
+        assert TR.address__public_key in layout.title()
 
         self.debug.click(self.debug.screen_buttons.menu())
         assert "VerticalMenu" in self.all_components()

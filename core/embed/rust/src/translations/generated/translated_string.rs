@@ -17,7 +17,7 @@ pub enum TranslatedString {
     addr_mismatch__support_url = 3,  // "trezor.io/support"
     addr_mismatch__wrong_derivation_path = 4,  // "Wrong derivation path for selected account."
     addr_mismatch__xpub_mismatch = 5,  // "XPUB mismatch?"
-    address__public_key = 6,  // "Public key"
+    address__public_key = 6,  // {"Bolt": "Public key", "Caesar": "Public key", "Delizia": "Public key", "Eckhart": "Public key (XPUB)"}
     address__title_cosigner = 7,  // "Cosigner"
     address__title_receive_address = 8,  // "Receive address"
     address__title_yours = 9,  // "Yours"
@@ -1456,7 +1456,14 @@ impl TranslatedString {
             (Self::addr_mismatch__support_url, "trezor.io/support"),
             (Self::addr_mismatch__wrong_derivation_path, "Wrong derivation path for selected account."),
             (Self::addr_mismatch__xpub_mismatch, "XPUB mismatch?"),
+            #[cfg(feature = "layout_bolt")]
             (Self::address__public_key, "Public key"),
+            #[cfg(feature = "layout_caesar")]
+            (Self::address__public_key, "Public key"),
+            #[cfg(feature = "layout_delizia")]
+            (Self::address__public_key, "Public key"),
+            #[cfg(feature = "layout_eckhart")]
+            (Self::address__public_key, "Public key (XPUB)"),
             (Self::address__title_cosigner, "Cosigner"),
             (Self::address__title_receive_address, "Receive address"),
             (Self::address__title_yours, "Yours"),

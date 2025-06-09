@@ -241,6 +241,7 @@ async def show_address(
     address: str,
     *,
     title: str | None = None,
+    subtitle: str | None = None,
     address_qr: str | None = None,
     case_sensitive: bool = True,
     path: str | None = None,
@@ -267,6 +268,7 @@ async def show_address(
         trezorui_api.flow_get_address(
             address=address,
             title=title or TR.address__title_receive_address,
+            subtitle=None,
             description=network or "",
             extra=None,
             chunkify=chunkify,
@@ -286,6 +288,7 @@ def show_pubkey(
     pubkey: str,
     title: str | None = None,
     *,
+    subtitle: str | None = None,
     account: str | None = None,
     path: str | None = None,
     mismatch_title: str | None = None,

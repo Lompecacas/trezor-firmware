@@ -356,6 +356,7 @@ def flow_get_address(
     *,
     address: str | bytes,
     title: str,
+    subtitle: str | None,
     description: str | None,
     extra: str | None,
     chunkify: bool,

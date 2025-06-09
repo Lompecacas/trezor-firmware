@@ -37,6 +37,7 @@ async def get_address(
 
         await show_address(
             address,
+            subtitle=f"XLM {TR.words__address}",
             case_sensitive=False,
             path=paths.address_n_to_str(address_n),
             account=paths.get_account_name("XLM", msg.address_n, PATTERN, SLIP44_ID),

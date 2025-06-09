@@ -120,9 +120,24 @@ async def get_public_key(
         show_xpub = node_xpub
         if script_type == InputScriptType.SPENDTAPROOT and descriptor is not None:
             show_xpub = descriptor
+
+        if script_type == InputScriptType.SPENDADDRESS:
+            subtitle = "Legacy"
+        elif script_type == InputScriptType.SPENDWITNESS:
+            subtitle = "Native SegWit"
+        elif script_type == InputScriptType.SPENDP2SHWITNESS:
+            subtitle = "SegWit"
+        elif script_type == InputScriptType.SPENDMULTISIG:
+            subtitle = "Legacy Multisig"
+        elif script_type == InputScriptType.SPENDTAPROOT:
+            subtitle = "Taproot"
+        else:
+            subtitle = "Unknown"
+        subtitle = f"BTC {subtitle}"
         await show_pubkey(
             show_xpub,
-            "XPUB",
+            TR.address__public_key,
+            subtitle=subtitle,
             account=account,
             path=path,
             mismatch_title=TR.addr_mismatch__xpub_mismatch,

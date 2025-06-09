@@ -72,6 +72,7 @@ impl FlowController for GetAddress {
 #[allow(clippy::too_many_arguments)]
 pub fn new_get_address(
     title: TString<'static>,
+    subtitle: Option<TString<'static>>,
     description: Option<TString<'static>>,
     extra: Option<TString<'static>>,
     address: Obj, // TODO: get rid of Obj
@@ -84,7 +85,6 @@ pub fn new_get_address(
     br_code: u16,
     br_name: TString<'static>,
 ) -> Result<SwipeFlow, error::Error> {
-    let flow_title: TString = TR::words__receive.into();
     let text_style = if chunkify {
         let address: TString = address.try_into()?;
         theme::get_chunkified_text_style(address.len())
@@ -114,8 +114,8 @@ pub fn new_get_address(
             .into_paragraphs()
             .with_placement(LinearPlacement::vertical()),
     )
-    .with_header(Header::new(flow_title).with_menu_button())
-    .with_subtitle(title)
+    .with_header(Header::new(title).with_menu_button())
+    .with_subtitle(subtitle.unwrap_or(TString::empty()))
     .with_action_bar(ActionBar::new_single(button));
     if let Some(extra) = extra {
         address_screen = address_screen.with_hint(Hint::new_warning(extra));
@@ -145,7 +145,7 @@ pub fn new_get_address(
             )),
     )
     .with_header(
-        Header::new(flow_title)
+        Header::new(title)
             .with_right_button(Button::with_icon(theme::ICON_CROSS), HeaderMsg::Cancelled),
     )
     .map(|msg| match msg {
@@ -216,7 +216,7 @@ pub fn new_get_address(
             .into_paragraphs()
             .with_placement(LinearPlacement::vertical()),
     )
-    .with_header(Header::new(flow_title))
+    .with_header(Header::new(title))
     .with_action_bar(ActionBar::new_double(
         Button::with_icon(theme::ICON_CHEVRON_LEFT),
         Button::with_text(TR::buttons__cancel.into()).styled(theme::button_cancel()),

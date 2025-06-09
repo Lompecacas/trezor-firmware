@@ -44,7 +44,23 @@ async def get_public_key(
         from apps.common.paths import address_n_to_str
 
         path = address_n_to_str(address_n)
-        await show_pubkey(key.xpub, TR.address__public_key, path=path)
+
+        role = address_n[3] if len(address_n) > 3 else None
+        purpose = address_n[0] if len(address_n) > 0 else None
+
+        if purpose == 0x8000073F:  # 1855'
+            subtitle = "Mint (CIP-1855)"
+        elif role == 0:
+            subtitle = "Base (Shelley - external)"
+        elif role == 1:
+            subtitle = "Base (Shelley - internal)"
+        elif role == 2:
+            subtitle = "Reward (Staking)"
+        else:
+            subtitle = "Unknown"
+        await show_pubkey(
+            key.xpub, TR.address__public_key, subtitle=subtitle, path=path
+        )
         return await early_response(
             key, show_continue_in_app(TR.address__public_key_confirmed)
         )

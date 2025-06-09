@@ -18,7 +18,12 @@
       "Eckhart": "Cancel receive?"
     },
     "address__confirmed": "Receive address confirmed",
-    "address__public_key": "Public key",
+    "address__public_key": {
+      "Bolt": "Public key",
+      "Caesar": "Public key",
+      "Delizia": "Public key",
+      "Eckhart": "Public key (XPUB)"
+    },
     "address__public_key_confirmed": "Public key confirmed",
     "address__qr_code": "QR code",
     "address__title_cosigner": "Cosigner",
