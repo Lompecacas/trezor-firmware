@@ -2,7 +2,7 @@ use crate::{
     trezorhal::power_manager::{self, ChargingState},
     ui::{
         component::{Component, Event, EventCtx, Never, Timer},
-        display::Font,
+        display::{Color, Font, Icon},
         geometry::{Alignment, Alignment2D, Offset, Point, Rect},
         shape::{self, Renderer},
         util::animation_disabled,
@@ -90,6 +90,34 @@ impl FuelGauge {
             font: fonts::FONT_SATOSHI_REGULAR_22,
         }
     }
+
+    fn battery_indication(&self, charging_state: ChargingState, soc: u8) -> (Icon, Color, Color) {
+        const SOC_THRESHOLD_FULL: u8 = 80;
+        const SOC_THRESHOLD_MID: u8 = 25;
+        const SOC_THRESHOLD_LOW: u8 = 9;
+        match charging_state {
+            ChargingState::Charging => (theme::ICON_BATTERY_ZAP, theme::YELLOW, theme::GREY_LIGHT),
+            ChargingState::Discharging | ChargingState::Idle => {
+                if soc > SOC_THRESHOLD_FULL {
+                    (
+                        theme::ICON_BATTERY_FULL,
+                        theme::GREY_LIGHT,
+                        theme::GREY_LIGHT,
+                    )
+                } else if soc > SOC_THRESHOLD_MID {
+                    (
+                        theme::ICON_BATTERY_MID,
+                        theme::GREY_LIGHT,
+                        theme::GREY_LIGHT,
+                    )
+                } else if soc > SOC_THRESHOLD_LOW {
+                    (theme::ICON_BATTERY_LOW, theme::YELLOW, theme::GREY_LIGHT)
+                } else {
+                    (theme::ICON_BATTERY_EMPTY, theme::RED, theme::RED)
+                }
+            }
+        }
+    }
 }
 
 impl Component for FuelGauge {
@@ -101,35 +129,36 @@ impl Component for FuelGauge {
     }
 
     fn event(&mut self, ctx: &mut EventCtx, event: Event) -> Option<Self::Msg> {
-        if let Event::Attach(_) = event {
-            if self.soc.is_none() {
-                self.update_pm_state();
-            }
-            if !animation_disabled() && self.mode == FuelGaugeMode::OnChargingChangeOrAttach {
-                self.timer.start(ctx, theme::firmware::FUEL_GAUGE_DURATION);
-            }
-            ctx.request_paint();
-        }
-
-        if let Event::PM(e) = event {
-            self.update_pm_state();
-            match self.mode {
-                FuelGaugeMode::Always => {
-                    ctx.request_paint();
+        match event {
+            Event::Attach(_) => {
+                if self.soc.is_none() {
+                    self.update_pm_state();
                 }
-                FuelGaugeMode::OnChargingChange | FuelGaugeMode::OnChargingChangeOrAttach => {
-                    if e.charging_status_changed {
-                        self.timer.start(ctx, theme::firmware::FUEL_GAUGE_DURATION);
+                if !animation_disabled() && self.mode == FuelGaugeMode::OnChargingChangeOrAttach {
+                    self.timer.start(ctx, theme::firmware::FUEL_GAUGE_DURATION);
+                }
+                ctx.request_paint();
+            }
+            Event::PM(e) => {
+                self.update_pm_state();
+                match self.mode {
+                    FuelGaugeMode::Always => {
                         ctx.request_paint();
+                    }
+                    FuelGaugeMode::OnChargingChange | FuelGaugeMode::OnChargingChangeOrAttach => {
+                        if e.charging_status_changed {
+                            self.timer.start(ctx, theme::firmware::FUEL_GAUGE_DURATION);
+                            ctx.request_paint();
+                        }
                     }
                 }
             }
-        }
-
-        if let Event::Timer(_) = event {
-            if self.timer.expire(event) {
-                ctx.request_paint();
+            Event::Timer(_) => {
+                if self.timer.expire(event) {
+                    ctx.request_paint();
+                }
             }
+            _ => {}
         }
 
         None
@@ -138,29 +167,8 @@ impl Component for FuelGauge {
     fn render<'s>(&'s self, target: &mut impl Renderer<'s>) {
         const ICON_PERCENT_GAP: i16 = 16;
 
-        let soc = self.soc.unwrap_or(u8::MAX);
-        let (icon, color_icon, color_text) = match self.charging_state {
-            ChargingState::Charging => (theme::ICON_BATTERY_ZAP, theme::YELLOW, theme::GREY_LIGHT),
-            ChargingState::Discharging | ChargingState::Idle => {
-                if soc > 80 {
-                    (
-                        theme::ICON_BATTERY_FULL,
-                        theme::GREY_LIGHT,
-                        theme::GREY_LIGHT,
-                    )
-                } else if soc > 25 {
-                    (
-                        theme::ICON_BATTERY_MID,
-                        theme::GREY_LIGHT,
-                        theme::GREY_LIGHT,
-                    )
-                } else if soc > 9 {
-                    (theme::ICON_BATTERY_LOW, theme::YELLOW, theme::GREY_LIGHT)
-                } else {
-                    (theme::ICON_BATTERY_EMPTY, theme::RED, theme::RED)
-                }
-            }
-        };
+        let soc = self.soc.unwrap_or(0);
+        let (icon, color_icon, color_text) = self.battery_indication(self.charging_state, soc);
         let soc_percent_fmt = if self.soc.is_none() {
             uformat!("--")
         } else {
@@ -207,6 +215,6 @@ impl Component for FuelGauge {
 impl crate::trace::Trace for FuelGauge {
     fn trace(&self, t: &mut dyn crate::trace::Tracer) {
         t.component("FuelGauge");
-        t.int("soc", self.soc.unwrap_or(u8::MAX) as i64);
+        t.int("soc", self.soc.unwrap_or(0) as i64);
     }
 }
