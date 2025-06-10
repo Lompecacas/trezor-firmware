@@ -159,19 +159,19 @@ impl Component for Header {
 
         let bounds = bounds.inset(Self::HEADER_INSETS);
         let rest = if let Some(b) = &mut self.right_button {
-            let (rest, button_area) = bounds.split_right(Self::HEADER_BUTTON_WIDTH);
-            b.place(button_area);
+            let (rest, right_button_area) = bounds.split_right(Self::HEADER_BUTTON_WIDTH);
+            b.place(right_button_area);
             rest
         } else {
             bounds
         };
 
         let icon_width = self.left_icon_width();
-        let (left_button, title_area) = rest.split_left(icon_width);
+        let (left_button_area, title_area) = rest.split_left(icon_width);
 
-        self.left_button.place(left_button);
+        self.left_button.place(left_button_area);
         self.title.place(title_area);
-        self.fuel_gauge.place(title_area.union(left_button));
+        self.fuel_gauge.place(title_area.union(left_button_area));
         if let Some(fuel_gauge) = &mut self.fuel_gauge {
             // Force update the fuel gauge state, so it is up-to-date
             // necessary e.g. for the first DeviceMenu Submenu re-entry
