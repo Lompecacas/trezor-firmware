@@ -75,6 +75,7 @@ def generate(env):
             rf"-e 's/utils\.USE_BUTTON/{button}/g'",
             rf"-e 's/utils\.USE_TOUCH/{touch}/g'",
             rf"-e 's/utils\.USE_THP/{thp}/g'",
+            rf"-e 's/utils\.USE_POWER_MANAGER/{thp}/g'",
             r"-e 's/if TYPE_CHECKING/if False/'",
             r"-e 's/import typing/# \0/'",
             r"-e '/from typing import (/,/^\s*)/ {s/^/# /; }'",
