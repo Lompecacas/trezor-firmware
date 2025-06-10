@@ -59,7 +59,7 @@ async def get_public_key(
         else:
             subtitle = "Unknown"
         await show_pubkey(
-            key.xpub, TR.address__xpub, subtitle=subtitle, path=path
+            key.xpub, TR.address__public_key, subtitle=subtitle, path=path
         )
         return await early_response(
             key, show_continue_in_app(TR.address__public_key_confirmed)
