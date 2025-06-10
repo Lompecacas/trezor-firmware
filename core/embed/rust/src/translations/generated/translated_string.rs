@@ -761,7 +761,7 @@ pub enum TranslatedString {
     recovery__dry_run_bip39_valid_match = 498,  // "The entered wallet backup is valid and matches the one in this device."
     recovery__dry_run_bip39_valid_mismatch = 499,  // "The entered wallet backup is valid but does not match the one in the device."
     recovery__dry_run_slip39_valid_match = 500,  // "The entered recovery shares are valid and match what is currently in the device."
-    recovery__dry_run_slip39_valid_mismatch = 501,  // "The entered recovery shares are valid but do not match what is currently in the device."
+    recovery__dry_run_slip39_valid_mismatch = 501,  // {"Bolt": "The entered recovery shares are valid but do not match what is currently in the device.", "Caesar": "The entered recovery shares are valid but do not match what is currently in the device.", "Delizia": "The entered wallet backup is valid but doesn't match the one on this device.", "Eckhart": "The entered wallet backup is valid but doesn't match the one on this device."}
     recovery__enter_any_share = 502,  // "Enter any share"
     recovery__enter_backup = 503,  // "Enter your backup."
     recovery__enter_different_share = 504,  // "Enter a different share."
@@ -2322,7 +2322,14 @@ impl TranslatedString {
             (Self::recovery__dry_run_bip39_valid_match, "The entered wallet backup is valid and matches the one in this device."),
             (Self::recovery__dry_run_bip39_valid_mismatch, "The entered wallet backup is valid but does not match the one in the device."),
             (Self::recovery__dry_run_slip39_valid_match, "The entered recovery shares are valid and match what is currently in the device."),
+            #[cfg(feature = "layout_bolt")]
             (Self::recovery__dry_run_slip39_valid_mismatch, "The entered recovery shares are valid but do not match what is currently in the device."),
+            #[cfg(feature = "layout_caesar")]
+            (Self::recovery__dry_run_slip39_valid_mismatch, "The entered recovery shares are valid but do not match what is currently in the device."),
+            #[cfg(feature = "layout_delizia")]
+            (Self::recovery__dry_run_slip39_valid_mismatch, "The entered wallet backup is valid but doesn't match the one on this device."),
+            #[cfg(feature = "layout_eckhart")]
+            (Self::recovery__dry_run_slip39_valid_mismatch, "The entered wallet backup is valid but doesn't match the one on this device."),
             (Self::recovery__enter_any_share, "Enter any share"),
             (Self::recovery__enter_backup, "Enter your backup."),
             (Self::recovery__enter_different_share, "Enter a different share."),
