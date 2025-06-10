@@ -139,7 +139,7 @@ impl Button {
     pub const fn with_homebar_content(text: Option<TString<'static>>) -> Self {
         Self::new(ButtonContent::HomeBar(
             text,
-            FuelGauge::new_on_chrg_status_change_and_attach()
+            FuelGauge::on_charging_change_or_attach()
                 .with_alignment(Alignment::Center)
                 .with_font(fonts::FONT_SATOSHI_MEDIUM_26),
         ))

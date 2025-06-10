@@ -382,7 +382,7 @@ impl<'a> DeviceMenuScreen<'a> {
                 }
                 let mut header = Header::new(submenu.header_text).with_close_button();
                 if submenu.show_battery {
-                    header = header.with_fuel_gauge(Some(FuelGauge::new_always()));
+                    header = header.with_fuel_gauge(Some(FuelGauge::always()));
                 } else {
                     header = header.with_left_button(
                         Button::with_icon(theme::ICON_CHEVRON_LEFT),

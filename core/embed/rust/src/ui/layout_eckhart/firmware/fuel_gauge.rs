@@ -28,8 +28,6 @@ pub struct FuelGauge {
     soc: Option<u8>,
     /// Timer to track temporary battery status showcase
     timer: Timer,
-    /// Whether the fuel gauge is currently showing
-    showing_temporarily: bool,
     /// Font used for the soc percentage
     font: Font,
 }
@@ -39,22 +37,22 @@ pub enum FuelGaugeMode {
     /// Always show the fuel gauge
     Always,
     /// Show the fuel gauge only when charging state changes
-    OnChrgChange,
+    OnChargingChange,
     /// Show the fuel gauge when charging state changes or when attached
-    OnChrgChangeAndAttach,
+    OnChargingChangeOrAttach,
 }
 
 impl FuelGauge {
-    pub const fn new_always() -> Self {
+    pub const fn always() -> Self {
         Self::new(FuelGaugeMode::Always)
     }
 
-    pub const fn new_on_chrg_status_change() -> Self {
-        Self::new(FuelGaugeMode::OnChrgChange)
+    pub const fn on_charging_change() -> Self {
+        Self::new(FuelGaugeMode::OnChargingChange)
     }
 
-    pub const fn new_on_chrg_status_change_and_attach() -> Self {
-        Self::new(FuelGaugeMode::OnChrgChangeAndAttach)
+    pub const fn on_charging_change_or_attach() -> Self {
+        Self::new(FuelGaugeMode::OnChargingChangeOrAttach)
     }
 
     pub const fn with_alignment(mut self, alignment: Alignment) -> Self {
@@ -75,8 +73,8 @@ impl FuelGauge {
     pub fn should_be_shown(&self) -> bool {
         match self.mode {
             FuelGaugeMode::Always => true,
-            FuelGaugeMode::OnChrgChange | FuelGaugeMode::OnChrgChangeAndAttach => {
-                self.showing_temporarily
+            FuelGaugeMode::OnChargingChange | FuelGaugeMode::OnChargingChangeOrAttach => {
+                self.timer.is_running()
             }
         }
     }
@@ -89,7 +87,6 @@ impl FuelGauge {
             charging_state: ChargingState::Idle,
             soc: None,
             timer: Timer::new(),
-            showing_temporarily: false,
             font: fonts::FONT_SATOSHI_REGULAR_22,
         }
     }
@@ -108,9 +105,7 @@ impl Component for FuelGauge {
             if self.soc.is_none() {
                 self.update_pm_state();
             }
-            self.update_pm_state();
-            if !animation_disabled() && self.mode == FuelGaugeMode::OnChrgChangeAndAttach {
-                self.showing_temporarily = true;
+            if !animation_disabled() && self.mode == FuelGaugeMode::OnChargingChangeOrAttach {
                 self.timer.start(ctx, theme::firmware::FUEL_GAUGE_DURATION);
             }
             ctx.request_paint();
@@ -122,9 +117,8 @@ impl Component for FuelGauge {
                 FuelGaugeMode::Always => {
                     ctx.request_paint();
                 }
-                FuelGaugeMode::OnChrgChange | FuelGaugeMode::OnChrgChangeAndAttach => {
+                FuelGaugeMode::OnChargingChange | FuelGaugeMode::OnChargingChangeOrAttach => {
                     if e.charging_status_changed {
-                        self.showing_temporarily = true;
                         self.timer.start(ctx, theme::firmware::FUEL_GAUGE_DURATION);
                         ctx.request_paint();
                     }
@@ -134,7 +128,6 @@ impl Component for FuelGauge {
 
         if let Event::Timer(_) = event {
             if self.timer.expire(event) {
-                self.showing_temporarily = false;
                 ctx.request_paint();
             }
         }
@@ -171,7 +164,7 @@ impl Component for FuelGauge {
         let soc_percent_fmt = if self.soc.is_none() {
             uformat!("--")
         } else {
-            uformat!("{}%", soc)
+            uformat!("{} %", soc)
         };
         let text_width = self.font.text_width(&soc_percent_fmt);
         let text_height = self.font.text_height();

@@ -61,7 +61,7 @@ impl Header {
             left_button_msg: HeaderMsg::Cancelled,
             icon: None,
             icon_color: None,
-            fuel_gauge: Some(FuelGauge::new_on_chrg_status_change()),
+            fuel_gauge: Some(FuelGauge::on_charging_change()),
         }
     }
 
