@@ -76,7 +76,6 @@
 #include "wire/wire_iface_ble.h"
 #endif
 
-#include "antiglitch.h"
 #include "bootui.h"
 #include "version_check.h"
 #include "wire/wire_iface_usb.h"
@@ -534,7 +533,6 @@ int bootloader_main(void) {
       auto_upgrade == sectrue) {
     workflow_result_t result;
 
-    jump_reset();
     if (header_present == sectrue) {
       if (auto_upgrade == sectrue && firmware_present == sectrue) {
         result = workflow_auto_update(&vhdr, hdr);
@@ -550,15 +548,6 @@ int bootloader_main(void) {
         firmware_present = sectrue;
         firmware_present_backup = sectrue;
       case WF_OK_REBOOT_SELECTED:
-        // todo reconsider need for antiglitching
-        // see https://github.com/trezor/trezor-firmware/issues/4805
-        ensure(dont_optimize_out_true *
-                   (jump_is_allowed_1() == jump_is_allowed_2()),
-               NULL);
-
-        ensure(dont_optimize_out_true *
-                   (firmware_present == firmware_present_backup),
-               NULL);
         jump_to_fw_through_reset();
         break;
       case WF_OK_DEVICE_WIPED:
