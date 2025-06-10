@@ -37,7 +37,7 @@ async def get_public_key(
 
         account = paths.get_account_name("XTZ", msg.address_n, PATTERNS, SLIP44_ID)
         path = paths.address_n_to_str(msg.address_n)
-        await show_pubkey(pk_prefixed, account=account, path=path)
+        await show_pubkey(pk_prefixed, subtitle=account, account=account, path=path)
         return await early_response(
             response, show_continue_in_app(TR.address__public_key_confirmed)
         )

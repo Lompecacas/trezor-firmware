@@ -3,7 +3,7 @@ async def require_get_public_key(
 ) -> None:
     from trezor.ui.layouts import show_pubkey
 
-    await show_pubkey(public_key, path=path, account=account)
+    await show_pubkey(public_key, subtitle=account, path=path, account=account)
 
 
 async def require_sign_tx(num_actions: int) -> None:
