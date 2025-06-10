@@ -982,7 +982,7 @@ if not utils.BITCOIN_ONLY:
             None,
             verb=TR.buttons__continue,
             br_name="confirm_ethereum_approve",
-            chunkify=chunkify,
+            chunkify=False if recipient_str else chunkify,
         )
 
         if total_amount is None:
