@@ -135,8 +135,10 @@ _Static_assert(NORCOW_SECTOR_SIZE == STORAGE_2_MAXSIZE, "norcow misconfigured");
 // Extended peripheral block to cover FMC1 that's used for display
 // 512M of periherals + 16M for FMC1 area that follows
 #define PERIPH_SIZE (SIZE_512M + SIZE_16M)
+#define PERIPH_SIZE_EXT (SIZE_256M + SIZE_16M)
 #else
-#define PERIPH_SIZE SIZE_512M
+#define PERIPH_SIZE SIZE_256M
+#define PERIPH_SIZE_EXT SIZE_512M
 #endif
 
 #define OTP_AND_ID_SIZE 0x800
@@ -449,6 +451,11 @@ mpu_mode_t mpu_reconfig(mpu_mode_t mode) {
       SET_REGION( 7, PERIPH_BASE,              PERIPH_SIZE,        PERIPHERAL,  YES,    YES ); // Peripherals - SAES, TAMP
       break;
 #endif
+    case MPU_MODE_OTP:
+      // Write to OTP requires access to non-secure FLASH controller
+      // (so we extended the peripheral region to cover it)
+      SET_REGION( 7, PERIPH_BASE_NS,           PERIPH_SIZE_EXT,    PERIPHERAL,  YES,    NO );
+      break;
     default:
       // All peripherals (Privileged, Read-Write, Non-Executable)
       SET_REGION( 7, PERIPH_BASE,              PERIPH_SIZE,        PERIPHERAL,  YES,    NO );
