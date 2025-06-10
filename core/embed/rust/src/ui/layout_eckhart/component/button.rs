@@ -15,10 +15,10 @@ use crate::{
     },
 };
 
-use super::super::{fonts, theme};
+use super::super::theme;
 
-#[cfg(feature = "micropython")]
-use super::super::firmware::FuelGauge;
+#[cfg(feature = "bootloader")]
+use super::super::fonts;
 
 pub enum ButtonMsg {
     Pressed,
@@ -137,12 +137,7 @@ impl Button {
 
     #[cfg(feature = "micropython")]
     pub const fn with_homebar_content(text: Option<TString<'static>>) -> Self {
-        Self::new(ButtonContent::HomeBar(
-            text,
-            FuelGauge::on_charging_change_or_attach()
-                .with_alignment(Alignment::Center)
-                .with_font(fonts::FONT_SATOSHI_MEDIUM_26),
-        ))
+        Self::new(ButtonContent::HomeBar(text))
     }
 
     pub const fn empty() -> Self {
@@ -526,46 +521,36 @@ impl Button {
                 child.render(target, self.area, self.style(), self.content_offset, alpha);
             }
             #[cfg(feature = "micropython")]
-            ButtonContent::HomeBar(text, ref fuel_gauge) => {
-                if fuel_gauge.should_be_shown() {
-                    fuel_gauge.render(target);
+            ButtonContent::HomeBar(text) => {
+                let baseline = self.area.center();
+                if let Some(text) = text {
+                    const OFFSET_Y: Offset = Offset::y(25);
+                    text.map(|text| {
+                        shape::Text::new(baseline, text, stylesheet.font)
+                            .with_fg(stylesheet.text_color)
+                            .with_align(Alignment::Center)
+                            .with_alpha(alpha)
+                            .render(target);
+                    });
+                    shape::ToifImage::new(
+                        self.area.center() + OFFSET_Y,
+                        theme::ICON_DASH_HORIZONTAL.toif,
+                    )
+                    .with_fg(stylesheet.icon_color)
+                    .with_align(Alignment2D::CENTER)
+                    .render(target);
                 } else {
-                    let baseline = self.area.center();
-                    if let Some(text) = text {
-                        const OFFSET_Y: Offset = Offset::y(25);
-                        text.map(|text| {
-                            shape::Text::new(baseline, text, stylesheet.font)
-                                .with_fg(stylesheet.text_color)
-                                .with_align(Alignment::Center)
-                                .with_alpha(alpha)
-                                .render(target);
-                        });
-                        shape::ToifImage::new(
-                            self.area.center() + OFFSET_Y,
-                            theme::ICON_DASH_HORIZONTAL.toif,
-                        )
-                        .with_fg(stylesheet.icon_color)
-                        .with_align(Alignment2D::CENTER)
-                        .render(target);
-                    } else {
-                        // double dash icon in the middle
-                        const OFFSET_Y: Offset = Offset::y(5);
-                        shape::ToifImage::new(
-                            baseline - OFFSET_Y,
-                            theme::ICON_DASH_HORIZONTAL.toif,
-                        )
+                    // double dash icon in the middle
+                    const OFFSET_Y: Offset = Offset::y(5);
+                    shape::ToifImage::new(baseline - OFFSET_Y, theme::ICON_DASH_HORIZONTAL.toif)
                         .with_fg(theme::GREY_LIGHT)
                         .with_align(Alignment2D::CENTER)
                         .render(target);
 
-                        shape::ToifImage::new(
-                            baseline + OFFSET_Y,
-                            theme::ICON_DASH_HORIZONTAL.toif,
-                        )
+                    shape::ToifImage::new(baseline + OFFSET_Y, theme::ICON_DASH_HORIZONTAL.toif)
                         .with_fg(theme::GREY_LIGHT)
                         .with_align(Alignment2D::CENTER)
                         .render(target);
-                    }
                 }
             }
         }
@@ -582,19 +567,11 @@ impl Component for Button {
     type Msg = ButtonMsg;
 
     fn place(&mut self, bounds: Rect) -> Rect {
-        #[cfg(feature = "micropython")]
-        if let ButtonContent::HomeBar(_text, ref mut fuel_gauge) = self.content_mut() {
-            fuel_gauge.place(bounds);
-        }
         self.area = bounds;
         self.area
     }
 
     fn event(&mut self, ctx: &mut EventCtx, event: Event) -> Option<Self::Msg> {
-        #[cfg(feature = "micropython")]
-        if let ButtonContent::HomeBar(_text, ref mut fuel_gauge) = self.content_mut() {
-            fuel_gauge.event(ctx, event);
-        }
         let touch_area = self.touch_area();
         match event {
             Event::Touch(TouchEvent::TouchStart(pos)) => {
@@ -711,9 +688,8 @@ impl crate::trace::Trace for Button {
                 t.string("text", *text);
             }
             #[cfg(feature = "micropython")]
-            ButtonContent::HomeBar(text, fuel_gauge) => {
+            ButtonContent::HomeBar(text) => {
                 t.string("text", text.unwrap_or(TString::empty()));
-                t.child("fuel_gauge", fuel_gauge);
             }
         }
     }
@@ -750,7 +726,7 @@ pub enum ButtonContent {
     Icon(Icon),
     IconAndText(IconText),
     #[cfg(feature = "micropython")]
-    HomeBar(Option<TString<'static>>, FuelGauge),
+    HomeBar(Option<TString<'static>>),
 }
 
 impl ButtonContent {
