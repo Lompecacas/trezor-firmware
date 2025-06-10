@@ -912,7 +912,7 @@ if not utils.BITCOIN_ONLY:
         else:
             main_layout = trezorui_api.confirm_with_info(
                 title=title,
-                items=[(recipient_str, False)],
+                items=[(recipient_str, True)],
                 verb=TR.buttons__continue,
                 verb_info=TR.ethereum__contract_address,
             )

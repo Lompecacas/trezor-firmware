@@ -366,7 +366,7 @@ impl FirmwareUI for UIEckhart {
         let paragraphs = PropsList::new(
             items,
             &theme::TEXT_SMALL_LIGHT,
-            &theme::TEXT_MONO_LIGHT,
+            &theme::TEXT_MONO_MEDIUM_LIGHT,
             &theme::TEXT_MONO_LIGHT,
         )?;
 
@@ -499,7 +499,7 @@ impl FirmwareUI for UIEckhart {
             let [text, is_data]: [Obj; 2] = util::iter_into_array(para)?;
             let is_data = is_data.try_into()?;
             let style: &TextStyle = if is_data {
-                &theme::TEXT_MONO_MEDIUM_LIGHT
+                &theme::TEXT_MONO_LIGHT
             } else {
                 &theme::TEXT_SMALL_LIGHT
             };
