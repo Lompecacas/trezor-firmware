@@ -2,7 +2,6 @@ use crate::{
     error::Error,
     io::BinaryData,
     strutil::TString,
-    time::Stopwatch,
     translations::TR,
     ui::{
         component::{text::TextStyle, Component, Event, EventCtx, Label, Never},
@@ -41,8 +40,6 @@ pub struct Homescreen {
     lockable: bool,
     /// Whether the homescreen is locked
     locked: bool,
-    /// Stopwatch for the fuel gauge (battery) showcase on the `action_bar`
-    fuel_gauge_stopwatch: Stopwatch,
     /// Hold to lock button placed everywhere except the `action_bar`
     virtual_locking_button: Button,
     /// Hold to lock animation
@@ -126,7 +123,6 @@ impl Homescreen {
             led_color,
             lockable,
             locked,
-            fuel_gauge_stopwatch: Stopwatch::new_stopped(),
             virtual_locking_button: Button::empty().with_long_press(lock_duration),
             htc_anim,
         })
