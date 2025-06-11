@@ -564,16 +564,17 @@ int bootloader_main(void) {
         error_shutdown("Bootloader fatal error");
       }
     }
+  } else {
+    ensure(
+        dont_optimize_out_true * (firmware_present == firmware_present_backup),
+        NULL);
+
+    if (sectrue == firmware_present) {
+      firmware_jump_fn = real_jump_to_firmware;
+    }
+
+    firmware_jump_fn();
   }
-
-  ensure(dont_optimize_out_true * (firmware_present == firmware_present_backup),
-         NULL);
-
-  if (sectrue == firmware_present) {
-    firmware_jump_fn = real_jump_to_firmware;
-  }
-
-  firmware_jump_fn();
 
   return 0;
 }
