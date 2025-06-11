@@ -545,8 +545,6 @@ int bootloader_main(void) {
 
     switch (result) {
       case WF_OK_FIRMWARE_INSTALLED:
-        firmware_present = sectrue;
-        firmware_present_backup = sectrue;
       case WF_OK_REBOOT_SELECTED:
         jump_to_fw_through_reset();
         break;
