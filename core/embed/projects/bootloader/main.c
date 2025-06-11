@@ -552,7 +552,7 @@ int bootloader_main(void) {
       case WF_OK_BOOTLOADER_UNLOCKED:
       case WF_ERROR:
         reboot_or_halt_after_rsod();
-        return 0;
+        break;
       case WF_ERROR_FATAL:
       default: {
         // erase storage if we saw flips randomly flip, most likely due to
@@ -562,6 +562,7 @@ int bootloader_main(void) {
 #endif
         ensure(erase_storage(NULL), NULL);
         error_shutdown("Bootloader fatal error");
+        break;
       }
     }
   } else {
@@ -576,5 +577,5 @@ int bootloader_main(void) {
     firmware_jump_fn();
   }
 
-  return 0;
+  error_shutdown("Unexpected bootloader exit");  // should never happen
 }
