@@ -133,7 +133,7 @@ _Static_assert(NORCOW_SECTOR_SIZE == STORAGE_2_MAXSIZE, "norcow misconfigured");
 
 // PERIPH_SIZE covers secure peripherals only (+16MB of FMC1)
 // PERIPH_SIZE_EXT covers both secure and non-secure peripherals (+16MB of FMC1)
-// The extended size is used in a special case — MPU_MODE_OTP — when access
+// The extended size is used in a special case - MPU_MODE_OTP - when access
 // to non-secure FLASH controller registers is required.
 
 #ifdef STM32U585xx
